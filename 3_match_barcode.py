@@ -26,3 +26,18 @@ match_data = openfood.loc[openfood["code"] == ean]
 info_nutritionnelles = match_data.columns[match_data.columns.str.contains("_100g")].tolist()
 
 data_to_categorize = match_data.loc[:, ["code", "product_name"] + info_nutritionnelles]
+
+product_name = data_to_categorize['product_name'].iloc[0]
+url_api = f"https://api.lab.sspcloud.fr/predicat/label?k=1&q=%27{product_name}%27"
+
+
+import requests
+
+output_api_predicat = requests.get(url_api).json()
+coicop_found = output_api_predicat['coicop'][f"'{product_name}'"][0]['label']
+coicop_found
+
+coicop = pd.read_excel("https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls", skiprows=1)
+coicop['Code'] = coicop['Code'].str.replace("'", "")
+
+data_to_categorize['category'] = coicop.loc[coicop['Code'] == coicop_found]['Libellé'].iloc[0]
