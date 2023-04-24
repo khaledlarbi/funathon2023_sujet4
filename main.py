@@ -1,9 +1,11 @@
 import cv2
 from pyzbar import pyzbar
 from skimage import io
+import matplotlib.pyplot as plt
 
-#url = "https://barcode-list.com/barcodeImage.php?barcode=5000112602999"
-url = 'barcode4.png'
+
+url = "https://barcode-list.com/barcodeImage.php?barcode=5000112602999"
+#url = 'barcode4.png'
 
 img = io.imread(url)
 
@@ -18,16 +20,20 @@ def draw_barcode(decoded, image):
                             thickness=5)
     return image
 
+
 # option 2
 decoded_objects = pyzbar.decode(img)
 
 for obj in decoded_objects:
         # draw the barcode
         print("detected barcode:", obj)
-        image = draw_barcode(obj, image)
+        image = draw_barcode(obj, img)
         # print barcode type & data
         print("Type:", obj.type)
         print("Data:", obj.data)
         print()
 
+
+depicted_image = plt.imshow(image)
+plt.axis('off')
 
