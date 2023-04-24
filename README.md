@@ -10,5 +10,6 @@ Produire une application qui scanne le code barre d'un produit et donne sa compo
 3. Indexer dans elastic ou recherche textuelle EAN
 4. Predicat
 5. Retourner composition nutritionnelle
-6. App streamlit
-7. Eventuellement : comparer aux produits même catégorie
+6. App streamlit local
+7. App streamlit deployée
+8. Eventuellement : comparer aux produits même catégorie
