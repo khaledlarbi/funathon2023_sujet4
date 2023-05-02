@@ -69,6 +69,8 @@ out_textual_imputed.columns = data_to_categorize.columns.tolist()
 data_to_categorize = out_textual_imputed.copy()
 
 
+# PREDICAT ------------------------------------------
+
 url_api = f"https://api.lab.sspcloud.fr/predicat/label?k=1&q=%27{product_name}%27"
 
 
