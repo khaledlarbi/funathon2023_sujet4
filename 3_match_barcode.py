@@ -68,6 +68,21 @@ out_textual_imputed.columns = data_to_categorize.columns.tolist()
 
 data_to_categorize = out_textual_imputed.copy()
 
+# CATEGORIZATION OPENFOOD ---------------------------
+
+# Approche 1: binaire fasttext
+from download_pb import download_pb
+
+LOCATION_FASTTEXT_COICOP = "https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/model_coicop10.bin"
+
+# methode 1: lien url
+download_pb(url = LOCATION_FASTTEXT_COICOP, fname = "fasttext_coicop.bin")
+
+# methode 2: s3fs
+fs.download(LOCATION_FASTTEXT_COICOP, "fasttext_coicop.bin")
+
+
+
 
 # PREDICAT ------------------------------------------
 
