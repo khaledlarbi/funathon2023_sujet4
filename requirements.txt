@@ -2,3 +2,7 @@ scikit-image
 opencv-python
 pyzbar
 xlrd
+matplotlib
+duckdb
+pandas
+pyarrow
