@@ -88,3 +88,6 @@ openfood = openfood.drop('Code', axis = "columns")
 
 with fs.open(DESTINATION_OPENFOOD, "wb") as f:
     openfood.to_parquet(f)
+
+
+
