@@ -86,3 +86,14 @@ coicop = pd.read_excel("https://www.insee.fr/fr/statistiques/fichier/2402696/coi
 coicop['Code'] = coicop['Code'].str.replace("'", "")
 
 data_to_categorize['category'] = coicop.loc[coicop['Code'] == coicop_found]['Libellé'].iloc[0]
+
+# API openfood ---------------
+
+ean = "3017624010701"
+
+url_api = f"https://world.openfoodfacts.net/api/v2/product/{ean}"
+
+req = requests.get(url_api)
+wb = req.json()
+df = pd.json_normalize(wb["results"])
+

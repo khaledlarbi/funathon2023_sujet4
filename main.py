@@ -8,7 +8,9 @@ st.title('Hello streamlit')
 
 with st.sidebar:
     input_url = st.file_uploader("Uploaded une photo:", accept_multiple_files=False)
-    st.image(input_url)
+    img = visualise_barcode(url)
+    cv2.imwrite('barcode_opencv.jpg', img)
+    st.image('barcode_opencv.jpg')
 
 
 decoded_objects = extract_ean(input_url)
@@ -18,6 +20,8 @@ ean = decoded_objects[0].data.decode("utf-8")
 st.write('EAN détecté:', ean)
 
 # partie 2: retrouver le produit depuis openfood
+
+
 
 import requests
 import pandas as pd

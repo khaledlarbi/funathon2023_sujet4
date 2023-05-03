@@ -35,11 +35,18 @@ def extract_ean(url, verbose=True):
             print("Data:", obj.data)
     return decoded_objects
 
+from pyzbar.pyzbar import decode
+import numpy as np
 
 def visualise_barcode(url):
     img = io.imread(url)
-    decoded_objects = extract_ean(url)
-    image = draw_barcode(decoded_objects, img)
-    depicted_image = plt.imshow(image)
-    plt.axis("off")
-    return depicted_image
+    for d in decode(img):
+        img = cv2.rectangle(img, (d.rect.left, d.rect.top),
+                            (d.rect.left + d.rect.width, d.rect.top + d.rect.height), (255, 0, 0), 2)
+        img = cv2.polylines(img, [np.array(d.polygon)], True, (0, 255, 0), 2)
+        img = cv2.putText(img, d.data.decode(), (d.rect.left, d.rect.top + d.rect.height),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 1, cv2.LINE_AA)
+
+    return img
+
+
