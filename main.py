@@ -8,7 +8,7 @@ st.title('Hello streamlit')
 
 with st.sidebar:
     input_url = st.file_uploader("Uploaded une photo:", accept_multiple_files=False)
-    img = visualise_barcode(url)
+    img = visualise_barcode(input_url)
     cv2.imwrite('barcode_opencv.jpg', img)
     st.image('barcode_opencv.jpg')
 
