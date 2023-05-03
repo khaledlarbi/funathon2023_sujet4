@@ -1,4 +1,5 @@
 import streamlit as st
+import duckdb
 from detect_barcode import extract_ean, visualise_barcode
 
 st.title('Hello streamlit')
@@ -21,7 +22,6 @@ st.write('EAN détecté:', ean)
 import requests
 import pandas as pd
 import s3fs
-
 from detect_barcode import extract_ean
 
 ENDPOINT_URL = "https://minio.lab.sspcloud.fr"
@@ -31,14 +31,21 @@ filename = URL.rsplit("/", maxsplit=1)[-1]
 BUCKET_RAW = f"{BUCKET}/2023/sujet4/diffusion"
 
 
+con = duckdb.connect(database=':memory:')
+con.execute("""
+INSTALL httpfs;
+LOAD httpfs;
+SET s3_endpoint='minio.lab.sspcloud.fr'
+""")
+
+
+
 @st.cache_data
-def load_data():
-    openfood_data = pd.read_parquet("temp.parquet")  # 👈 Download the data
-    return openfood_data
+def load_data(ean):
+    openfood_data = con.sql(f"select * from read_parquet('temp.parquet') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)")
+    return openfood_data.df()
 
-openfood_data = load_data()
-
-subset = openfood_data.loc[openfood_data["code"] == ean]
+subset = load_data(ean)
 
 st.write('Consulter ce produit sur le site openfoodfacts:', subset["url"].iloc[0])
 st.image(subset["image_url"].iloc[0])
