@@ -4,10 +4,11 @@ import s3fs
 
 from detect_barcode import extract_ean
 
-
 ENDPOINT_URL = "https://minio.lab.sspcloud.fr"
-BUCKET = "projet-formation"
-BUCKET_RAW = f"{BUCKET}/diffusion/funathon/sujet4"
+BUCKET = "projet-funathon"
+URL = "https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz"
+filename = URL.rsplit("/", maxsplit=1)[-1]
+BUCKET_RAW = f"{BUCKET}/2023/sujet4/diffusion"
 
 fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": ENDPOINT_URL})
 
@@ -78,6 +79,8 @@ url_api = f"https://api.lab.sspcloud.fr/predicat/label?k=1&q=%27{product_name}%2
 output_api_predicat = requests.get(url_api).json()
 coicop_found = output_api_predicat['coicop'][f"'{product_name}'"][0]['label']
 coicop_found
+
+
 
 coicop = pd.read_excel("https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls", skiprows=1)
 coicop['Code'] = coicop['Code'].str.replace("'", "")

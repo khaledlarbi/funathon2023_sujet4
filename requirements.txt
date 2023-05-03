@@ -6,3 +6,4 @@ matplotlib
 duckdb
 pandas
 pyarrow
+fasttext
