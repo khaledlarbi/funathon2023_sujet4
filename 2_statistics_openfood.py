@@ -28,13 +28,13 @@ stats_nutritionnelles = openfood.loc[:,info_nutritionnelles + ["category"]].grou
 stats_nutritionnelles['quantile'] = stats_nutritionnelles['quantile'].mul(10).astype(int)
 stats_nutritionnelles = pd.melt(stats_nutritionnelles, id_vars=['category', 'quantile'])
 
-with fs.open(f"{DESTINATION_RAW}/stats_nutritionnelles_pandas.parquet", "wb") as f:
-    stats_nutritionnelles.to_parquet(f)
-
 stats_notes = openfood.loc[:,["category"] + grades].groupby("category").agg({i:'value_counts' for i in grades}).reset_index(names=['category', 'note'])
 stats_notes = pd.melt(stats_notes, id_vars = ['category','note'])
 stats_notes['note'] = stats_notes['note'].astype(str)
 stats_notes['value'] = stats_notes['value'].astype("Int64")
+
+with fs.open(f"{DESTINATION_RAW}/stats_nutritionnelles_pandas.parquet", "wb") as f:
+    stats_nutritionnelles.to_parquet(f)
 
 with fs.open(f"{DESTINATION_RAW}/stats_notes_pandas.parquet", "wb") as f:
     stats_notes.to_parquet(f)
@@ -62,3 +62,20 @@ def quantile_one_variable_sql(variable):
 stats_nutritionnelles_sql = [quantile_one_variable_sql(nutriment) for nutriment in info_nutritionnelles]
 stats_nutritionnelles_sql = pd.concat(stats_nutritionnelles_sql)
 
+
+def count_one_variable_sql(variable):
+    query = f"SELECT category, {variable} AS note, COUNT({variable}) AS value FROM read_parquet('temp.parquet') GROUP BY category, {variable}"
+    stats_one_variable = con.sql(query).df().dropna()
+    stats_one_variable['variable'] = variable
+    return stats_one_variable
+
+
+stats_notes_sql = [count_one_variable_sql(note) for note in grades]
+stats_notes_sql = pd.concat(stats_notes_sql)
+
+
+with fs.open(f"{DESTINATION_RAW}/stats_nutritionnelles_sql.parquet", "wb") as f:
+    stats_nutritionnelles_sql.to_parquet(f)
+
+with fs.open(f"{DESTINATION_RAW}/stats_notes_sql.parquet", "wb") as f:
+    stats_notes_sql.to_parquet(f)
