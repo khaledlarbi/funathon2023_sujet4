@@ -1,4 +1,5 @@
 import streamlit as st
+import cv2
 import duckdb
 from detect_barcode import extract_ean, visualise_barcode
 
