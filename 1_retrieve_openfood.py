@@ -1,19 +1,19 @@
 import s3fs
 import pandas as pd
 from download_pb import download_pb
+from import_yaml import import_yaml
 
-ENDPOINT_URL = "https://minio.lab.sspcloud.fr"
-BUCKET = "projet-funathon"
-URL = "https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz"
-filename = URL.rsplit("/", maxsplit=1)[-1]
-DESTINATION_RAW = f"{BUCKET}/2023/sujet4/diffusion"
+config = import_yaml("config.yaml")
 
-fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": ENDPOINT_URL})
+DESTINATION_RAW = f"{BUCKET}/{config['DESTINATION_DATA_S3']}"
+
+fs = s3fs.S3FileSystem(
+    client_kwargs={"endpoint_url": config["ENDPOINT_S3"]}
+)
 
 
 # OPENFOOD -------------------------------------
 
-DESTINATION_OPENFOOD = f"{DESTINATION_RAW}/openfood.parquet"
 
 
 download_pb(URL, filename)

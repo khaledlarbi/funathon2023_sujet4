@@ -113,4 +113,96 @@ def import_yaml(filename: str) -> dict:
 import_yaml("config.yaml")
 ```
 
-###
+Il est recommandé pour la suite de
+copier-coller la fonction créée (ne pas oublier les imports associés) 
+dans un fichier à l'emplacement `utils/import_yaml.py`. Cette approche modulaire est
+une bonne
+pratique, recommandée
+dans [ce cours de l'ENSAE](https://ensae-reproductibilite.github.io/website/).
+
+Pour la voie 🟡, ce fichier a déjà été créé pour vous. 
+Le tester de la manière suivante:
+
+```{python}
+#| classes: yellow-code
+
+# Solution pour voie 🟡
+from utils.import_yaml import import_yaml
+config = import_yaml("config.yaml")
+```
+
+
+### Télécharger et nettoyer la base `OpenFoodFacts` (🟡,🟢,🔵,🔴,⚫)
+
+Un export quotidien de la
+base de données `OpenFoodFacts` est fourni au format `CSV`. L'URL est le suivant:
+
+```{python}
+config["URL_OPENFOOD"]
+```
+
+Il est possible d'importer de plusieurs manières ce type de fichier avec `Python`. 
+Ce qu'on propose ici, 
+c'est de le faire en deux temps, afin d'avoir un contrôle des 
+options mises en oeuvre lors de l'import (notamment le format de certaines variables) :
+
+- Utiliser `requests` pour télécharger le fichier et l'écrire, de manière intermédiaire, 
+sur le disque local ;
+- Utiliser `pandas` avec quelques options pour importer le fichier puis le manipuler. 
+
+
+::: {.cell .markdown}
+<!----- boite 🟢 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🟢", title = "Télécharger et importer OpenFoodFacts (🟢)")
+```
+```
+
+1. Utiliser la fonction `requests.get` pour télécharger le fichier.
+Vous pouvez vous inspirer de réponses [ici](https://stackoverflow.com/questions/16694907/download-large-file-in-python-with-requests)
+
+
+2. Utiliser `pd.read_csv` avec les options suivantes:
+        + Le fichier utilise `\t` comme tabulation
+        + Utiliser l'argument `parse_dates=["created_datetime", "last_modified_datetime", "last_image_datetime"]`
+        + Il est nécessaire de figer quelques types avec l'argument `dtype`. Voici le dictionnaire à passer
+        
+```python
+{
+    "code ": "str",
+    "emb_codes": "str",
+    "emb_codes_tags": "str",
+    "energy_100g": "float",
+    "alcohol_100g": "float",
+}
+```
+3. Forcer la colonne `code` à être de type _string_ avec la méthode `.astype(str)`
+
+```{=html}
+</div>
+```
+
+<!----- end 🟢 ----->
+:::
+
+
+```{python}
+#| eval: false
+from utils.preprocess_openfood import download_openfood, import_openfood
+download_openfood(destination = "openfood.csv.gz")
+openfood = import_openfood("openfood.csv.gz")
+openfood.loc[:, ['code', 'product_name']].head(3)
+```
+
+```{python}
+#| label: import-openfood
+#| echo: false
+from utils.preprocess_openfood import download_openfood, import_openfood
+openfood = import_openfood("openfood.csv.gz")
+openfood.loc[:, ['code', 'product_name']].head(3)
+```
