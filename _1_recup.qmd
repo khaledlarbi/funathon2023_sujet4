@@ -1,0 +1,116 @@
+## 1. Récupération et nettoyage de la base `OpenFoodFacts`
+
+### Préliminaire (🟡,🟢,🔵,🔴,⚫)
+
+Comme nous allons utiliser fréquemment certains paramètres,
+une bonne pratique consiste à les stocker dans un fichier
+dédié, au format `YAML` et d'importer celui-ci via
+`Python`. Ceci est expliqué dans [ce cours de l'ENSAE](https://ensae-reproductibilite.github.io/website/chapters/application.html#etape-3-gestion-des-param%C3%A8tres)
+
+Nous proposons de créer le fichier suivant au nom `config.yaml`:
+
+```yaml
+URL_OPENFOOD: "https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz"
+ENDPOINT_S3: "https://minio.lab.sspcloud.fr"
+BUCKET: "projet-funathon" # <- ⚠️ Ligne à changer
+DESTINATION_DATA_S3: "/2023/sujet4/diffusion"
+```
+
+⚠️ Si vous désirez pouvoir reproduire tous les exemples de ce fichier, vous devez
+changer la variable `BUCKET` pour mettre votre nom d'utilisateur sur le `SSPCloud`.
+
+Nous allons lire ce fichier avec le package adapté pour transformer ces
+instructions en variables `Python` (stockées dans un dictionnaire)
+
+
+
+::: {.cell .markdown}
+<!----- boite 🟢 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🟢", title = "Utiliser un fichier YAML (🟢)")
+```
+```
+
+A partir des exemples présents dans [cette page](https://stackoverflow.com/questions/1773805/how-can-i-parse-a-yaml-file-in-python),
+importer les variables dans un objet `Python` nommé `config`
+
+```{=html}
+</div>
+```
+
+<!----- end 🟢 ----->
+:::
+
+::: {.cell .markdown}
+<!----- boite 🔵 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔵", title = "Utiliser un fichier YAML (🔵)")
+```
+```
+
+Utiliser le package `PyYAML` pour importer les éléments présents dans `config.yaml` dans un objet `Python` nommé `config`
+
+```{=html}
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
+
+::: {.cell .markdown}
+<!----- boite 🔴,⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔴", title = "Utiliser un fichier YAML (🔴,⚫)")
+```
+```
+
+Importer les éléments présents dans `config.yaml` dans un objet `Python` nommé `config`
+
+```{=html}
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
+
+
+
+```{python}
+#| classes: yellow-code
+
+# Solution pour voie 🟡
+import yaml
+
+def import_yaml(filename: str) -> dict:
+    """
+    Importer un fichier YAML
+
+    Args:
+        filename (str): Emplacement du fichier
+
+    Returns:
+        dict: Le fichier YAML sous forme de dictionnaire Python
+    """
+    with open(filename, "r", encoding="utf-8") as stream:
+        config = yaml.safe_load(stream)
+        return config
+
+import_yaml("config.yaml")
+```
+
+###

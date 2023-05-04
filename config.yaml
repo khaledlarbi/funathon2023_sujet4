@@ -1,0 +1,4 @@
+URL_OPENFOOD: "https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz"
+ENDPOINT_S3: "https://minio.lab.sspcloud.fr"
+BUCKET: "projet-funathon"
+DESTINATION_DATA_S3: "/2023/sujet4/diffusion"

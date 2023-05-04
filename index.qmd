@@ -40,6 +40,63 @@ Il est donc tout à fait possible de passer, selon les parties, d'une voie 🟢 
 
 Il est même tout à fait possible de sauter une étape et reprendre à partir de la suivante grâce aux _checkpoints_ proposés. 
 
+Les consignes sont encapsulées dans des boites dédiées, afin d'être séparées des explications générales. Par exemple, la boite verte prendra l'aspect suivant:
+
+::: {.cell .markdown}
+<!----- boite 🟢 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🟢")
+```
+```
+
+Utiliser la fonction `print` pour afficher le texte _"Toto"_
+
+```{=html}
+</div>
+```
+
+<!----- end 🟢 ----->
+:::
+
+
+
+alors que sur le même exercice, la boite bleue aura l'aspect suivant:
+
+::: {.cell .markdown}
+<!----- boite 🔵 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔵")
+```
+```
+
+Afficher le texte _"Toto"_
+
+```{=html}
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
+
+
+La solution associée, visible pour les personnes sur la voie 🟡 sera:
+
+```{python}
+# Solution pour voie 🟡
+print("toto")
+```
+
+
 ### Etapes du projet
 
 Le projet est séquencé de la manière suivante: 
@@ -64,13 +121,33 @@ faisant office de solution sont, par défauts, cachés. Cela peut être pratique
 de consulter cette page si vous êtes sur un parcours de couleur différente que le 
 jaune et ne voulez pas voir la solution sans le vouloir ;
 - Sur un notebook `Jupyter`, les solutions de la voie 🟡 sont affichées par défaut.
-Elles peuvent être cachées dans les options 
+Elles peuvent être cachées en faisant `View` > `Collapse All Code`
+
+### Sources et packages utilisés
+
+Notre source de référence sera [`OpenFoodFacts`](https://fr.openfoodfacts.org/), une 
+base contributive sur les produits alimentaires. 
 
 
-```{python}
-#| echo: true
-
-import matplotlib.pyplot as plt
-plt.plot([1,2,3,4])
-plt.show()
+::: {.cell .markdown}
+```{=html}
+<div class="alert alert-warning" role="alert" style="color: rgba(0,0,0,.8); background-color: white; margin-top: 1em; margin-bottom: 1em; margin:1.5625emauto; padding:0 .6rem .8rem!important;overflow:hidden; page-break-inside:avoid; border-radius:.25rem; box-shadow:0 .2rem .5rem rgba(0,0,0,.05),0 0 .05rem rgba(0,0,0,.1); transition:color .25s,background-color .25s,border-color .25s ; border-right: 1px solid #dee2e6 ; border-top: 1px solid #dee2e6 ; border-bottom: 1px solid #dee2e6 ; border-left:.2rem solid #ffc10780;">
+<h3 class="alert-heading"><i class="fa fa-lightbulb-o"></i> Hint</h3>
 ```
+Nous utiliserons également un classifieur automatique issu du projet [`predicat`](https://github.com/InseeFrLab/predicat).
+Il s'agit d'un modèle qui utilise des noms de produits pour leur associer des catégories de la
+nomenclature [COICOP (Classification des fonctions de consommation des ménages)](https://www.insee.fr/fr/information/2408172).
+
+Ce modèle est là à des fins de démonstration du principe de la classification automatique et de la manière dont celle-ci
+peut être intégrée à un processus de production de données. Il ne s'agit pas d'un modèle
+officiel de l'Insee. 
+
+```{=html}
+</div>
+```
+
+:::
+
+
+
+{{< include _1_recup.qmd >}}
