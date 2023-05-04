@@ -1,7 +1,16 @@
 import streamlit as st
 import cv2
 import duckdb
+import requests
+import pandas as pd
+import s3fs
+
 from detect_barcode import extract_ean, visualise_barcode
+
+info_nutritionnelles = [
+    'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g',
+    'carbohydrates_100g', 'sugars_100g',
+    'proteins_100g', 'salt_100g']
 
 st.title('Hello streamlit')
 
@@ -13,27 +22,18 @@ with st.sidebar:
     cv2.imwrite('barcode_opencv.jpg', img)
     st.image('barcode_opencv.jpg')
 
-
-decoded_objects = extract_ean(input_url)
-ean = decoded_objects[0].data.decode("utf-8")
-
-
-st.write('EAN détecté:', ean)
-
+if input_url is not None:
+    decoded_objects = extract_ean(input_url)
+    ean = decoded_objects[0].data.decode("utf-8")
+    st.write('EAN détecté:', ean)
+else:
+    st.write("Fournir une image")
 # partie 2: retrouver le produit depuis openfood
 
 
 
-import requests
-import pandas as pd
-import s3fs
-from detect_barcode import extract_ean
 
-ENDPOINT_URL = "https://minio.lab.sspcloud.fr"
-BUCKET = "projet-funathon"
-URL = "https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz"
-filename = URL.rsplit("/", maxsplit=1)[-1]
-BUCKET_RAW = f"{BUCKET}/2023/sujet4/diffusion"
+URL_PARQUET = "https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/openfood.parquet"
 
 
 con = duckdb.connect(database=':memory:')
@@ -44,10 +44,9 @@ SET s3_endpoint='minio.lab.sspcloud.fr'
 """)
 
 
-
 @st.cache_data
 def load_data(ean):
-    openfood_data = con.sql(f"select * from read_parquet('temp.parquet') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)")
+    openfood_data = con.sql(f"select * from read_parquet('{URL_PARQUET}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)")
     return openfood_data.df()
 
 subset = load_data(ean)
@@ -56,10 +55,7 @@ st.write('Consulter ce produit sur le site openfoodfacts:', subset["url"].iloc[0
 st.image(subset["image_url"].iloc[0])
 
 
-info_nutritionnelles = [
-    'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g',
-    'carbohydrates_100g', 'sugars_100g',
-    'proteins_100g', 'salt_100g']
+
 
 subset2 = subset.loc[:, ['code', 'product_name', 'category'] + info_nutritionnelles]
 st.dataframe(subset2)
