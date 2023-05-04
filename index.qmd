@@ -1,0 +1,76 @@
+---
+title: "Un Yuka avec Python"
+format:
+  html:
+    code-fold: true
+    code-summary: "Dérouler la solution 🟡"
+---
+
+
+Ce projet, mené dans le cadre du funathon (hackathon non compétitif) organisé par l'Insee en 2023
+
+## Objectif et approche pédagogique
+
+L'objectif de ce projet est d'apprendre à utiliser `Python` pour créer des 
+applications réactives avec `Streamlit` mais aussi de se familiariser à
+la manipulation de données avec `Python` et, au passage, à quelques bonnes
+pratiques utiles pour obtenir des projets plus lisibles et reproductibles. 
+
+
+Pour parvenir à cet objectif, il est possible d'emprunter plusieurs voies,
+plus ou moins guidées. Celles-ci sont là pour permettre que ce sujet 
+soit réalisable. Elles sont balisées de la manière suivante:
+
+| Balisage | Approche | Prérequis de niveau | Objectif pédagogique |
+|--------|---------|----------------|-------------------|
+| 🟡 | Exécuter les cellules permet d'obtenir le résultat attendu | Capacité à installer des _packages_ | Découvrir de nouveaux _packages_ en suivant le fil conducteur du projet, découvrir les scripts `Python`, se familiariser avec `Git`  |
+| 🟢 | Des instructions détaillées sur la manière de procéder sont proposées | Connaître quelques manipulations avec `Pandas` | Apprendre à utiliser certains _packages_ avec un projet guidé, se familiariser avec les projets `Python` plus conséquents que les _notebooks_ `Jupyter` |
+| 🔵 | Instructions moins détaillées | Capacité à manipuler des données avec `Pandas` | Apprendre à modulariser du code pour faciliter sa réutilisation dans une application, découvrir la récupation de données via des API |
+| 🔴 | Peu d'instructions | Expérience en développement de code `Python` | Découvrir la création d'application ou se familiariser avec l'écosystème `DuckDB` |
+| ⚫ | Autonomie | Bonne maîtrise de `Python` et de la ligne de commande ̀ Linux` | S'initier au déploiement d'une application ou à l'ingénieurie de données |
+
+Le parcours vers la mise en oeuvre d'une application fonctionnelle se fait par étapes, en séquençant le projet
+pour permettre d'avoir un projet lisible, reproductible et modulaire. 
+
+Les étapes ne sont
+pas forcément de difficulté graduelle, il s'agit plutôt de séquencer de manière logique le projet
+pour vous faciliter la prise en main.
+
+Il est donc tout à fait possible de passer, selon les parties, d'une voie 🟢 à une voie 🔵 ou bien de tester les codes proposés dans la voie 🟡 d'abord puis, une fois que la logique a été comprise, essayer de les faire soit-même via la voie 🟢 ou encore essayer via la voie 🔵, ne pas y parvenir du fait du caractère plus succinct des instructions et regarder les instructions de la voie 🟢 ou la solution de la voie 🟡.
+
+Il est même tout à fait possible de sauter une étape et reprendre à partir de la suivante grâce aux _checkpoints_ proposés. 
+
+### Etapes du projet
+
+Le projet est séquencé de la manière suivante: 
+
+| Etape | Objectif |
+|--------|---------|
+| Récupération et nettoyage de la base `OpenFoodFacts` | Lire des données avec `Pandas` depuis un site web (🟡,🟢,🔵,🔴,⚫), appliquer des nettoyages de champs textuels (🟡,🟢,🔵,🔴,⚫), catégoriser ces données avec un classifieur automatique (🟡,🟢,🔵,🔴,⚫) voire entrainer un classifieur _ad hoc_ (🔴,⚫), écrire ces données sur un système de stockage distant (🟡,🟢,🔵,🔴,⚫) |
+| Faire des statistiques agrégées par catégories | Utiliser `Pandas` (🟡,🟢,🔵) ou ̀`DuckDB` (🔴,⚫) pour faire des statistiques par groupe |
+| Trouver un produit dans `OpenFoodFacts` à partir d'un code barre | Détection visuelle d'un code barre (🟡,🟢,🔵, 🔴,⚫), rechercher des données avec des critères d'appariement exact comme le code barre via `Pandas` (🟡,🟢,🔵) ou ̀`DuckDB` (🔴,⚫)  ou via des distances textuelles (🔴,⚫)|
+| Encapsuler ces étapes dans une application `Streamlit` | Tester une application `Streamlit` minimale (🟡,🟢,🔵, 🔴,⚫), personnaliser celle-ci (🔴,⚫ ou 🟡,🟢,🔵 désirant se focaliser sur `Streamlit`) |
+| Mettre en production cette application | Déployer grâce à des serveurs standardisés une application `Streamlit` (🔴,⚫) ou proposer une version sans serveur (⚫ voulant se familiariser à `Observable`) |
+
+
+Le développement à proprement parler de l'application est donc assez tardif car un certain nombre d'étapes préalables sont nécessaires pour ne pas avoir une application monolithique (ce qui est une bonne pratique). Si vous n'êtes intéressés que par développer une application `Streamlit`, vous pouvez directement passer aux étapes concernées. 
+
+### Remarque
+
+Cette page peut être consultée par différents canaux:
+
+- Sur un site web, les codes
+faisant office de solution sont, par défauts, cachés. Cela peut être pratique
+de consulter cette page si vous êtes sur un parcours de couleur différente que le 
+jaune et ne voulez pas voir la solution sans le vouloir ;
+- Sur un notebook `Jupyter`, les solutions de la voie 🟡 sont affichées par défaut.
+Elles peuvent être cachées dans les options 
+
+
+```{python}
+#| echo: true
+
+import matplotlib.pyplot as plt
+plt.plot([1,2,3,4])
+plt.show()
+```
