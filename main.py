@@ -18,9 +18,10 @@ st.title('Hello streamlit')
 
 with st.sidebar:
     input_url = st.file_uploader("Uploaded une photo:", accept_multiple_files=False)
-    img = visualise_barcode(input_url)
-    cv2.imwrite('barcode_opencv.jpg', img)
-    st.image('barcode_opencv.jpg')
+    if input_url is not None:
+        img = visualise_barcode(input_url)
+        cv2.imwrite('barcode_opencv.jpg', img)
+        st.image('barcode_opencv.jpg')
 
 if input_url is not None:
     decoded_objects = extract_ean(input_url)
@@ -36,20 +37,16 @@ else:
 URL_PARQUET = "https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/openfood.parquet"
 
 
-con = duckdb.connect(database=':memory:')
-con.execute("""
-INSTALL httpfs;
-LOAD httpfs;
-SET s3_endpoint='minio.lab.sspcloud.fr'
-""")
-
-
 @st.cache_data
 def load_data(ean):
-    openfood_data = con.sql(f"select * from read_parquet('{URL_PARQUET}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)")
+    openfood_data = duckdb.sql(f"select * from read_parquet('{URL_PARQUET}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)")
     return openfood_data.df()
 
-subset = load_data(ean)
+if input_url is not None:
+    subset = load_data(ean)
+else:
+    st.write('Produit exemple: Coca-Cola')
+    subset = load_data("5000112602791")
 
 st.write('Consulter ce produit sur le site openfoodfacts:', subset["url"].iloc[0])
 st.image(subset["image_url"].iloc[0])
