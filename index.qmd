@@ -67,7 +67,8 @@ Utiliser la fonction `print` pour afficher le texte _"Toto"_
 
 
 
-alors que sur le même exercice, la boite bleue aura l'aspect suivant:
+alors que sur le même exercice, si plusieurs voies peuvent emprunter le même chemin, on 
+utilisera une délimitation grise :
 
 ::: {.cell .markdown}
 <!----- boite 🔵 ----->
@@ -77,7 +78,7 @@ alors que sur le même exercice, la boite bleue aura l'aspect suivant:
 #| echo: false
 #| output: asis
 from utils_notebook import create_box_level
-create_box_level(color = "🔵", title = "Exemple (🔵)")
+create_box_level(color = "grey", title = "Exemple (🔵,🔴,⚫)")
 ```
 ```
 
