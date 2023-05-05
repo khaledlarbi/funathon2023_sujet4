@@ -68,19 +68,24 @@ import fasttext
 
 model = fasttext.load_model("fasttext_coicop.bin")
 
-predictions = pd.DataFrame(
-    {
-    "coicop": \
-        [k[0] for k in model.predict(
-            [str(libel) for libel in openfood["preprocessed_labels"]], k = 1
-            )[0]]
-    })
+def model_predict_coicop(data, model, product_column: str = "preprocessed_labels", output_column: str = "coicop"):
+    predictions = pd.DataFrame(
+        {
+        output_column: \
+            [k[0] for k in model.predict(
+                [str(libel) for libel in data["preprocessed_labels"]], k = 1
+                )[0]]
+        })
 
-openfood["coicop"] = predictions["coicop"].str.replace(r'__label__', '')
+    data[output_column] = data[output_column].str.replace(r'__label__', '')
+    return data
+
 
 
 coicop = pd.read_excel("https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls", skiprows=1)
 coicop['Code'] = coicop['Code'].str.replace("'", "")
+coicop = coicop.rename({"Libellé": "category"}, axis = "columns")
+
 
 openfood = openfood.merge(coicop, how = "left", left_on = "coicop", right_on = "Code")
 openfood = openfood.rename({"Libellé": "category"}, axis = "columns")

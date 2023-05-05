@@ -1,6 +1,8 @@
 import os
 import s3fs
 import pandas as pd
+import fasttext
+
 from utils.download_pb import download_pb
 from utils.import_yaml import import_yaml
 from utils.utils_ddc import preprocess_text
@@ -61,4 +63,24 @@ def clean_column_dataset(
     
     data[variable_output] = data[variable_to_clean].str.upper()
     data = data.replace({variable_output: dict_rules_replacement}, regex=True)
+    return data
+
+
+def import_coicop_labels(url: str) -> pd.DataFrame:
+    coicop = pd.read_excel(url, skiprows=1)
+    coicop['Code'] = coicop['Code'].str.replace("'", "")
+    coicop = coicop.rename({"Libellé": "category"}, axis = "columns")
+    return coicop
+
+
+def model_predict_coicop(data, model, product_column: str = "preprocessed_labels", output_column: str = "coicop"):
+    predictions = pd.DataFrame(
+        {
+        output_column: \
+            [k[0] for k in model.predict(
+                [str(libel) for libel in data["preprocessed_labels"]], k = 1
+                )[0]]
+        })
+
+    data[output_column] = data[output_column].str.replace(r'__label__', '')
     return data

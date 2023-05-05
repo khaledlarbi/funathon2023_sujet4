@@ -12,8 +12,10 @@ Nous proposons de créer le fichier suivant au nom `config.yaml`:
 ```yaml
 URL_OPENFOOD: "https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz"
 ENDPOINT_S3: "https://minio.lab.sspcloud.fr"
-BUCKET: "projet-funathon" # <- ⚠️ Ligne à changer
+BUCKET: "projet-funathon"
 DESTINATION_DATA_S3: "/2023/sujet4/diffusion"
+URL_FASTTEXT_MINIO: "https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/model_coicop10.bin"
+URL_COICOP_LABEL: "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls"
 ```
 
 ⚠️ Si vous désirez pouvoir reproduire tous les exemples de ce fichier, vous devez
@@ -304,8 +306,16 @@ openfood.loc[:, ['code', 'product_name', 'energy-kcal_100g', 'nutriscore_grade']
 #| echo: false
 #| output: false
 #| cache: true
+import os
+import pandas as pd
+
 from utils.preprocess_openfood import download_openfood, import_openfood
-openfood = import_openfood("openfood.csv.gz")
+download_openfood(destination = "openfood.csv.gz")
+if os.path.exists("openfood.parquet"):
+    openfood = pd.read_parquet("openfood.parquet")
+else:
+    openfood = import_openfood("openfood.csv.gz")
+    openfood.to_parquet("openfood.parquet")
 ```
 
 ```{python}
@@ -332,6 +342,118 @@ disponible directement dans `OpenFoodFacts`. Il est proposé d'utiliser `Fasttex
 (une librairie spécialisée open-source, développée par `Meta` il y a quelques années) dans
 le cadre de la voie 🔴. Les personnes suivant la voie ⚫ sont libres d'utiliser
 n'importe quel _framework_ de classification. 
+
+
+::: {.cell .markdown}
+<!----- boite 🟢 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🟢", title = "Nettoyer les données textuelles (🟢)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+1. Récupérer le dictionnaire de règles dans [ce fichier](https://raw.githubusercontent.com/InseeFrLab/predicat/master/app/utils_ddc.py)
+2. Créer une colonne `preprocessed_labels` en appliquant la méthode `str.upper` à la colonne `product_name` afin de la mettre en majuscule
+3. Modifier le `DataFrame` avec la syntaxe prenant la forme `data.replace({variable: dict_rules_replacement}, regex=True)`
+4. Observer les cas où il y a eu des changements, par exemple de la manière suivante
+
+```python
+openfood.loc[:, ["product_name", "preprocessed_labels"]].dropna().loc[openfood["product_name"].str.upper() != openfood["preprocessed_labels"]]
+```
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🟢 ----->
+:::
+
+
+::: {.cell .markdown}
+<!----- boite 🔵 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔵", title = "Nettoyer les données textuelles (🔵)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+1. Récupérer le dictionnaire de règles dans [ce fichier](https://raw.githubusercontent.com/InseeFrLab/predicat/master/app/utils_ddc.py)
+2. Créer une colonne `preprocessed_labels` mettant en majuscule la colonne `product_name`
+3. Modifier le `DataFrame` avec la syntaxe utilisant la méthode `replace` (celle qui s'applique aux `DataFrame`, pas celle s'appliquant à une `Serie`) et le dictionnaire adapté
+4. Observer les cas où il y a eu des changements,
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
+
+::: {.cell .markdown}
+<!----- boite 🔴 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔴", title = "Nettoyer les données textuelles (🔴)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+1. Récupérer le dictionnaire de règles dans [ce fichier](https://raw.githubusercontent.com/InseeFrLab/predicat/master/app/utils_ddc.py)
+2. Créer une colonne `preprocessed_labels` appliquant les remplacements à `product_name` grâce à la méthode `replace` (celle qui s'applique aux `DataFrame`, pas celle s'appliquant à une `Serie`)
+3. Observer les cas où il y a eu des changements
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔴 ----->
+:::
+
+::: {.cell .markdown}
+<!----- boite ⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "⚫", title = "Nettoyer les données textuelles (⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+1. Récupérer le dictionnaire de règles dans [ce fichier](https://raw.githubusercontent.com/InseeFrLab/predicat/master/app/utils_ddc.py)
+2. Créer une colonne `preprocessed_labels` appliquant les remplacements à `product_name`
+3. Observer les cas où il y a eu des changements
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end ⚫ ----->
+:::
 
 
 Dans un premier temps, on récupère les fonctions permettant d'appliquer sur nos données 
@@ -384,10 +506,10 @@ from utils.preprocess_openfood import clean_column_dataset
 openfood = clean_column_dataset(openfood,replace_values_ean, "product_name", "preprocessed_labels")
 ```
 
-Voici quelques cas où notre nettoyage de données a été efficace:
+Voici quelques cas où notre nettoyage de données a modifié le nom du produit :
 
 ```{python}
-openfood.loc[:, ["product_name", "preprocessed_labels"]].dropna().loc[openfood["product_name"].str.upper() != toto["preprocessed_labels"]]
+openfood.loc[:, ["product_name", "preprocessed_labels"]].dropna().loc[openfood["product_name"].str.upper() != openfood["preprocessed_labels"]]
 ```
 
 On peut remarquer que pour aller plus loin et améliorer la normalisation des champs,
@@ -421,3 +543,158 @@ de champs textuels
 
 <!----- end 🔴,⚫ ----->
 :::
+
+On peut maintenant se tourner vers la classification à proprement parler. 
+Pour celle-ci, on propose d'utiliser un modèle qui a été entrainé
+avec [`Fasttext`](https://fasttext.cc/). Voici comment récupérer le modèle
+et le tester sur un exemple très basique:
+
+```{python}
+from utils.download_pb import download_pb
+import os
+import fasttext
+
+if os.path.exists("fasttext_coicop.bin") is False:
+    download_pb(url = config["URL_FASTTEXT_MINIO"], fname = "fasttext_coicop.bin")
+
+
+model = fasttext.load_model("fasttext_coicop.bin")
+model.predict("RATATOUILLE")
+```
+
+Le résultat est peu intelligible. En effet, cela demande une bonne connaissance de la 
+COICOP pour savoir de
+manière intuitive que cela correspond à la catégorie [_"Autres plats cuisinés à base de légumes"_](https://www.insee.fr/fr/statistiques/serie/001764476). 
+
+Avant de généraliser le classifieur à l'ensemble de nos données, on se propose donc de récupérer
+les noms des COICOP depuis le site [insee.fr](https://www.insee.fr/fr/metadonnees/coicop2016/division/01?champRecherche=true).
+Comme cela ne présente pas de défi majeur, le code est directement proposé, quelle que soit la voie empruntée:
+
+```{python}
+def import_coicop_labels(url: str) -> pd.DataFrame:
+    coicop = pd.read_excel(url, skiprows=1)
+    coicop['Code'] = coicop['Code'].str.replace("'", "")
+    coicop = coicop.rename({"Libellé": "category"}, axis = "columns")
+    return coicop
+    
+coicop = import_coicop_labels(
+    "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls"
+)
+coicop.loc[coicop["Code"].str.contains("01.1.7.3.2")]
+```
+
+Maintenant nous avons tous les ingrédients pour généraliser notre recette `fasttext`.
+L'application en série de prédictions via `fasttext` étant un peu fastidieuse et peu élégante (elle
+nécessite d'être à l'aise avec les lists `Python`) et n'étant pas le centre de notre sujet,
+la fonction suivante est fournie pour effectuer cette opération :
+
+```{python}
+def model_predict_coicop(data, model, product_column: str = "preprocessed_labels", output_column: str = "coicop"):
+    predictions = pd.DataFrame(
+        {
+        output_column: \
+            [k[0] for k in model.predict(
+                [str(libel) for libel in data["preprocessed_labels"]], k = 1
+                )[0]]
+        })
+
+    data[output_column] = data[output_column].str.replace(r'__label__', '')
+    return data
+
+openfood = model_predict_coicop(openfood, model)
+```
+
+### Version alternative via l'API [`predicat`](https://github.com/InseeFrLab/predicat)  (🟡,🟢,🔵,🔴,⚫)
+
+
+L'utilisation d'API pour accéder à des données devient de plus en plus fréquente. Mais
+les API peuvent servir à faire beaucoup plus, notamment à récupérer des prédictions
+d'un modèle. La plateforme [`HuggingFace`](https://huggingface.co/) est très appréciée
+pour cela: elle a grandement facilité la réutilisation de modèles mis en disposition
+en _open source_. Cette approche a principalement deux avantages:
+
+- Elle permet d'appliquer sur les données fournies en entrée exactement les mêmes pré-traitement
+que sur les données d'entrainement. Ceci renforce la fiabilité des prédictions. 
+- Elle facilite le travail des data scientists ou statisticiens car ils ne sont plus obligés 
+de mettre en place des fonctions compliquées pour passer les prédictions dans une colonne
+de `DataFrame`. 
+
+Ici, nous proposons de tester une API mise à disposition
+de manière expérimentale pour faciliter la réutilisation de notre modèle de classification. 
+Cette API s'appelle `predicat` et son code source est
+disponible sur [`Github`](https://github.com/InseeFrLab/predicat).
+Pour les parcours 🟡,🟢,🔵, nous suggérons de se cantonner à tester quelques exemples. 
+Pour les parcours 🔴 et ⚫ qui voudraient se tester sur les API,
+nous proposons de généraliser ces appels à [`predicat`](https://github.com/InseeFrLab/predicat)
+pour classifier toutes nos données. 
+
+::: {.cell .markdown}
+<!----- boite 🔴,⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "grey", title = "Consommer un modèle sous forme d'API (🔴,⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Appliquer l'API [`predicat`](https://github.com/InseeFrLab/predicat) en série pour
+catégoriser l'ensemble des données
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔴,⚫ ----->
+:::
+
+
+Voici, pour les parcours 🟡,🟢,🔵, un exemple d'utilisation:
+
+```{python}
+def predict_from_api(product_name):
+    url_api = f"https://api.lab.sspcloud.fr/predicat/label?k=1&q=%27{product_name}%27"
+    output_api_predicat = requests.get(url_api).json()
+    coicop_found = output_api_predicat['coicop'][f"'{product_name}'"][0]['label']
+    return coicop_found
+
+predict_from_api("Ratatouille")
+```
+
+Pour le parcours 🔵, voici un exercice pour tester sur un échantillon des données
+de l'`OpenFoodFacts`
+
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔵", title = "Consommer un modèle sous forme d'API (🔵)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+A partir des exemples présents dans [ce _notebook_](https://github.com/InseeFrLab/predicat/blob/master/help/example-request.ipynb),
+tester l'API sur une centaine de noms de produits pris aléatoirement (ceux avant _preprocessing_).
+
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
+
+
+### Ecriture de la base sur l'espace de stockage distant
+
+Le fait d'avoir effectué en amont ce type d'opération permettra
+d'économiser
