@@ -697,4 +697,13 @@ tester l'API sur une centaine de noms de produits pris aléatoirement (ceux avan
 ### Ecriture de la base sur l'espace de stockage distant
 
 Le fait d'avoir effectué en amont ce type d'opération permettra
-d'économiser
+d'économiser du temps par la suite puisqu'on s'évite des calculs à la
+volée coûteux en performance (rien de pire qu'une page _web_ qui rame non ?). 
+
+Pour facilement retrouver ces données, on va les écrire dans un espace
+de stockage accessible facilement. Pour cela, nous proposons d'utiliser celui
+du SSP Cloud. 
+
+```{python}
+
+```
