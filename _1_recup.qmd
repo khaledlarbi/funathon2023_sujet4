@@ -34,12 +34,15 @@ instructions en variables `Python` (stockées dans un dictionnaire)
 from utils_notebook import create_box_level
 create_box_level(color = "🟢", title = "Utiliser un fichier YAML (🟢)")
 ```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
 ```
 
 A partir des exemples présents dans [cette page](https://stackoverflow.com/questions/1773805/how-can-i-parse-a-yaml-file-in-python),
 importer les variables dans un objet `Python` nommé `config`
 
 ```{=html}
+</details>
 </div>
 ```
 
@@ -56,11 +59,14 @@ importer les variables dans un objet `Python` nommé `config`
 from utils_notebook import create_box_level
 create_box_level(color = "🔵", title = "Utiliser un fichier YAML (🔵)")
 ```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
 ```
 
 Utiliser le package `PyYAML` pour importer les éléments présents dans `config.yaml` dans un objet `Python` nommé `config`
 
 ```{=html}
+</details>
 </div>
 ```
 
@@ -77,11 +83,14 @@ Utiliser le package `PyYAML` pour importer les éléments présents dans `config
 from utils_notebook import create_box_level
 create_box_level(color = "🔴", title = "Utiliser un fichier YAML (🔴,⚫)")
 ```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
 ```
 
 Importer les éléments présents dans `config.yaml` dans un objet `Python` nommé `config`
 
 ```{=html}
+</details>
 </div>
 ```
 
@@ -161,6 +170,8 @@ sur le disque local ;
 from utils_notebook import create_box_level
 create_box_level(color = "🟢", title = "Télécharger et importer OpenFoodFacts (🟢)")
 ```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
 ```
 
 1. Utiliser la fonction `requests.get` pour télécharger le fichier.
@@ -181,28 +192,232 @@ Vous pouvez vous inspirer de réponses [ici](https://stackoverflow.com/questions
     "alcohol_100g": "float",
 }
 ```
+
 3. Forcer la colonne `code` à être de type _string_ avec la méthode `.astype(str)`
 
 ```{=html}
+</details>
 </div>
 ```
 
 <!----- end 🟢 ----->
 :::
 
+::: {.cell .markdown}
+<!----- boite 🔵 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔵", title = "Télécharger et importer OpenFoodFacts (🔵)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+1. Utiliser le _package_ `requests` pour télécharger le fichier. Si vous voulez afficher une barre de progression,
+vous pouvez vous inspirer de la fonction `download_pb` du package [`cartiflette`](https://github.com/InseeFrLab/cartiflette)
+
+2. Lire les données avec `pandas` avec les options suivantes:
+        + Le fichier utilise `\t` comme tabulation
+        + Utiliser l'argument `parse_dates = ["created_datetime", "last_modified_datetime", "last_image_datetime"]`
+        + Il est nécessaire de figer, voici le dictionnaire à passer
+        
+```python
+{
+    "code ": "str",
+    "emb_codes": "str",
+    "emb_codes_tags": "str",
+    "energy_100g": "float",
+    "alcohol_100g": "float",
+}
+```
+
+3. Forcer la colonne `code` à être de type _string_
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
+
+::: {.cell .markdown}
+<!----- boite 🔴,⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "grey", title = "Télécharger et importer OpenFoodFacts (🔴,⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+1. Télécharger le fichier avec `Python`. Pour s'assurer de la progression du téléchargement, 
+utiliser également la librairie `tqdm`.
+
+2. Lire les données avec `pandas` avec les options suivantes:
+        + Le fichier utilise `\t` comme tabulation
+        + Utiliser l'argument `parse_dates = ["created_datetime", "last_modified_datetime", "last_image_datetime"]`
+        + Il est nécessaire de figer, voici le dictionnaire à passer
+        
+```python
+{
+    "code ": "str",
+    "emb_codes": "str",
+    "emb_codes_tags": "str",
+    "energy_100g": "float",
+    "alcohol_100g": "float",
+}
+```
+
+3. Forcer la colonne `code` à être de type _string_
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔴,⚫ ----->
+:::
 
 ```{python}
+#| classes: yellow-code
+#| label: import-openfood-solution
 #| eval: false
+
+# Solution pour voie 🟡
 from utils.preprocess_openfood import download_openfood, import_openfood
 download_openfood(destination = "openfood.csv.gz")
 openfood = import_openfood("openfood.csv.gz")
-openfood.loc[:, ['code', 'product_name']].head(3)
+openfood.loc[:, ['code', 'product_name', 'energy-kcal_100g', 'nutriscore_grade']].sample(5, random_state = 12345)
 ```
 
 ```{python}
 #| label: import-openfood
 #| echo: false
+#| output: false
+#| cache: true
 from utils.preprocess_openfood import download_openfood, import_openfood
 openfood = import_openfood("openfood.csv.gz")
-openfood.loc[:, ['code', 'product_name']].head(3)
 ```
+
+```{python}
+#| echo: false
+#| output: true
+openfood.loc[:, ['code', 'product_name', 'energy-kcal_100g', 'nutriscore_grade']].sample(5, random_state = 12345)
+```
+
+### Classification automatique dans une nomenclature de produits  (🟡,🟢,🔵,🔴,⚫)
+
+Pour proposer sur notre application quelques statistiques pertinentes sur
+le produit, nous allons associer chaque ligne d'`OpenFoodFacts` 
+à un type de produit dans la `COICOP` pour pouvoir comparer un produit
+à des produits similaires. 
+
+Nous allons ainsi utiliser le nom du produit pour inférer le type de bien
+dont il s'agit. Pour cela, dans les parcours 🟡,🟢 et 🔵, 
+nous allons d'utiliser un classifieur expérimental
+proposé sur [`Github InseeFrLab/predicat`](https://github.com/InseeFrLab/predicat)
+qui a été entrainé sur cette tâche sur un grand volume de
+données (non spécifiquement alimentaires). Pour les parcours 🔴 et ⚫, nous 
+proposons d'entraîner un classifieur en utilisant la catégorisation des données
+disponible directement dans `OpenFoodFacts`. Il est proposé d'utiliser `Fasttext`
+(une librairie spécialisée open-source, développée par `Meta` il y a quelques années) dans
+le cadre de la voie 🔴. Les personnes suivant la voie ⚫ sont libres d'utiliser
+n'importe quel _framework_ de classification. 
+
+
+Dans un premier temps, on récupère les fonctions permettant d'appliquer sur nos données 
+le même _preprocessing_ que celui qui a été mis en oeuvre lors de l'entraînement du modèle:
+
+```{python}
+#| classes: yellow-code
+#| label: get-utils-ddc
+#| output: false
+
+# Solution pour voie 🟡 et 🟢
+from utils.download_pb import download_pb
+download_pb("https://raw.githubusercontent.com/InseeFrLab/predicat/master/app/utils_ddc.py", "utils/utils_ddc.py")
+```
+
+Pour observer les nettoyages de champs textuels mis en oeuvre, les lignes suivantes
+peuvent être exécutées:
+
+```{python}
+#| output: false
+
+from utils.utils_ddc import replace_values_ean
+replace_values_ean
+```
+
+Pour effectuer des remplacements dans des champs textuels, le plus simple est d'utiliser
+les expressions régulières (`regex`). Vous pouvez trouver une ressource complète
+sur le sujet dans [ce cours de `Python` de l'ENSAE](https://pythonds.linogaliana.fr/regex/).
+
+Deux options s'offrent à nous:
+
+- Utiliser le _package_ `re` et boucler sur les lignes
+- Utiliser les fonctionnalités très pratiques de `Pandas`
+
+Nous privilégierons la deuxième approche, plus naturelle quand on utilise des `DataFrames` et
+plus efficace puisqu'elle est nativement intégrée à `Pandas`. 
+
+La syntaxe prend la forme suivante : 
+
+```python
+data.replace({variable: dict_rules_replacement}, regex=True)
+```
+
+C'est celle qui est implémentée dans la fonction _ad hoc_ du script `utils/preprocess_openfood.py`.
+Cette dernière s'utilise de la manière suivante:
+
+```{python}
+from utils.utils_ddc import replace_values_ean
+from utils.preprocess_openfood import clean_column_dataset
+openfood = clean_column_dataset(openfood,replace_values_ean, "product_name", "preprocessed_labels")
+```
+
+Voici quelques cas où notre nettoyage de données a été efficace:
+
+```{python}
+openfood.loc[:, ["product_name", "preprocessed_labels"]].dropna().loc[openfood["product_name"].str.upper() != toto["preprocessed_labels"]]
+```
+
+On peut remarquer que pour aller plus loin et améliorer la normalisation des champs,
+il serait pertinent d'appliquer un certain nombre de nettoyages supplémentaires, comme
+le retrait des mots de liaison (_stop words_). Des exemples de ce type de nettoyages
+sont présents dans le [cours de `Python` de l'ENSAE](https://pythonds.linogaliana.fr/nlpintro/).
+Cela est laissé comme exercice aux voies 🔴 et ⚫
+
+
+::: {.cell .markdown}
+<!----- boite 🔴,⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "grey", title = "Normaliser les champs textuels (🔴,⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Utiliser `nltk` ou `SpaCy` (solution préférable) pour ajouter des nettoyages
+de champs textuels
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔴,⚫ ----->
+:::

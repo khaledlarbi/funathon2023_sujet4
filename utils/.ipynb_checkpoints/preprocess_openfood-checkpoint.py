@@ -1,7 +1,9 @@
+import os
 import s3fs
 import pandas as pd
 from utils.download_pb import download_pb
 from utils.import_yaml import import_yaml
+from utils.utils_ddc import preprocess_text
 
 config = import_yaml("config.yaml")
 
@@ -15,7 +17,16 @@ fs = s3fs.S3FileSystem(
 
 # OPENFOOD -------------------------------------
 
-def download_openfood(url: str = config["URL_OPENFOOD"], destination: str = "openfood.csv"):
+def download_openfood(
+        url: str = config["URL_OPENFOOD"],
+        destination: str = "openfood.csv",
+        force: bool = False
+    ):
+    
+    if os.path.exists(destination) is True and force is False:
+        print(f"{destination} exists, if you want to override, add argument force=True")
+        return None
+    
     download_pb(url, destination)
 
     
@@ -41,3 +52,13 @@ def import_openfood(filename):
     openfood["code"] = openfood["code"].astype(str)
     
     return openfood
+
+
+def clean_column_dataset(
+    data: pd.DataFrame,
+    dict_rules_replacement: dict,
+    variable_to_clean: str, variable_output: str) :
+    
+    data[variable_output] = data[variable_to_clean].str.upper()
+    data = data.replace({variable_output: dict_rules_replacement}, regex=True)
+    return data

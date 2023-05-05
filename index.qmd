@@ -54,11 +54,14 @@ Les consignes sont encapsulées dans des boites dédiées, afin d'être séparé
 from utils_notebook import create_box_level
 create_box_level(color = "🟢", title = "Exemple (🟢)")
 ```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
 ```
 
 Utiliser la fonction `print` pour afficher le texte _"Toto"_
 
 ```{=html}
+</details>
 </div>
 ```
 
@@ -80,11 +83,14 @@ utilisera une délimitation grise :
 from utils_notebook import create_box_level
 create_box_level(color = "grey", title = "Exemple (🔵,🔴,⚫)")
 ```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
 ```
 
 Afficher le texte _"Toto"_
 
 ```{=html}
+</details>
 </div>
 ```
 
