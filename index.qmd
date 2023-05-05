@@ -121,6 +121,11 @@ Le projet est séquencé de la manière suivante:
 
 Le développement à proprement parler de l'application est donc assez tardif car un certain nombre d'étapes préalables sont nécessaires pour ne pas avoir une application monolithique (ce qui est une bonne pratique). Si vous n'êtes intéressés que par développer une application `Streamlit`, vous pouvez directement passer aux étapes concernées. 
 
+La première étape (_Récupération et nettoyage de la base `OpenFoodFacts`_) peut être assez chronophage. Cela est assez représentatif des projets de _data science_ où la majorité du temps est consacrée
+à la structuration et la manipulation de données. La deuxième étape (_"Faire des statistiques agrégées par catégories"_) est la moins centrale de ce sujet: si vous manquez de temps vous pouvez la passer
+et utiliser directement les morceaux de code mis à disposition. 
+
+
 ### Remarque
 
 Cette page peut être consultée par différents canaux:
@@ -158,5 +163,6 @@ officiel de l'Insee.
 :::
 
 
-
+<!------------
 {{< include _1_recup.qmd >}}
+---->
