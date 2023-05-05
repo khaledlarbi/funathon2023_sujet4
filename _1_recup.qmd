@@ -1,4 +1,4 @@
-## 1. Récupération et nettoyage de la base `OpenFoodFacts`
+## 1. Récupération des données `OpenFoodFacts`
 
 ### Préliminaire (🟡,🟢,🔵,🔴,⚫)
 
@@ -580,6 +580,8 @@ def import_coicop_labels(url: str) -> pd.DataFrame:
 coicop = import_coicop_labels(
     "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls"
 )
+
+# Verification de la COICOP rencontrée plus haut
 coicop.loc[coicop["Code"].str.contains("01.1.7.3.2")]
 ```
 
@@ -748,3 +750,15 @@ with fs.open(DESTINATION_OPENFOOD, "wb") as file_location:
     openfood.to_parquet(file_location)
 ```
 
+⚠️ il faut avoir modifié la valeur de `BUCKET` dans le fichier `config.yaml` pour
+que cette commande fonctionne. 
+
+Enfin, pour rendre ce fichier accessible à votre future application, 
+il est nécessaire d'exécuter la cellule suivante
+
+```{python}
+#| eval: false
+!mc anonymous set download s3/projet-funathon/2023/sujet4/diffusion
+```
+
+qui rend ce fichier public. 

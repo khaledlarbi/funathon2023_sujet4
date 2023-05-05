@@ -2,6 +2,7 @@
 title: "Un Yuka avec Python"
 execute:
   cache: true
+  keep-ipynb: true
 format:
   html:
     code-fold: true
@@ -163,6 +164,6 @@ officiel de l'Insee.
 :::
 
 
-<!------------
+
 {{< include _1_recup.qmd >}}
----->
+{{< include _2_statistics.qmd >}}
