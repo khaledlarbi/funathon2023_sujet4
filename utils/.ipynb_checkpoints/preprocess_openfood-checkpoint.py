@@ -78,9 +78,9 @@ def model_predict_coicop(data, model, product_column: str = "preprocessed_labels
         {
         output_column: \
             [k[0] for k in model.predict(
-                [str(libel) for libel in data["preprocessed_labels"]], k = 1
+                [str(libel) for libel in data[product_column]], k = 1
                 )[0]]
         })
 
-    data[output_column] = data[output_column].str.replace(r'__label__', '')
+    data[output_column] = predictions[output_column].str.replace(r'__label__', '')
     return data

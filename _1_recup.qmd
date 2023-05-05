@@ -594,11 +594,11 @@ def model_predict_coicop(data, model, product_column: str = "preprocessed_labels
         {
         output_column: \
             [k[0] for k in model.predict(
-                [str(libel) for libel in data["preprocessed_labels"]], k = 1
+                [str(libel) for libel in data[product_column]], k = 1
                 )[0]]
         })
 
-    data[output_column] = data[output_column].str.replace(r'__label__', '')
+    data[output_column] = predictions[output_column].str.replace(r'__label__', '')
     return data
 
 openfood = model_predict_coicop(openfood, model)
@@ -657,6 +657,8 @@ catégoriser l'ensemble des données
 Voici, pour les parcours 🟡,🟢,🔵, un exemple d'utilisation:
 
 ```{python}
+import requests
+
 def predict_from_api(product_name):
     url_api = f"https://api.lab.sspcloud.fr/predicat/label?k=1&q=%27{product_name}%27"
     output_api_predicat = requests.get(url_api).json()
@@ -704,6 +706,4 @@ Pour facilement retrouver ces données, on va les écrire dans un espace
 de stockage accessible facilement. Pour cela, nous proposons d'utiliser celui
 du SSP Cloud. 
 
-```{python}
 
-```
