@@ -672,6 +672,9 @@ Pour le parcours 🔵, voici un exercice pour tester sur un échantillon des don
 de l'`OpenFoodFacts`
 
 
+::: {.cell .markdown}
+<!----- boite 🔵 ----->
+
 ```{=html}
 ```{python}
 #| echo: false
@@ -696,6 +699,16 @@ tester l'API sur une centaine de noms de produits pris aléatoirement (ceux avan
 :::
 
 
+### Entrainer son propre classifieur (🔴,⚫)
+
+Les grimpeurs des voies 🔴 et ⚫ sont encouragés à essayer d'entraîner
+eux-mêmes un modèle de classification:
+
+- 🔴 : utiliser `fasttext`
+- ⚫ : liberté sur le _framework_ utilisé
+
+
+
 ### Ecriture de la base sur l'espace de stockage distant
 
 Le fait d'avoir effectué en amont ce type d'opération permettra
@@ -704,6 +717,34 @@ volée coûteux en performance (rien de pire qu'une page _web_ qui rame non ?).
 
 Pour facilement retrouver ces données, on va les écrire dans un espace
 de stockage accessible facilement. Pour cela, nous proposons d'utiliser celui
-du SSP Cloud. 
+du SSP Cloud. Nous proposons ici d'utiliser le package `s3fs` qui est 
+assez pratique pour traiter un espace distant comme on ferait d'un 
+espace de stockage local. Pour en apprendre plus sur le système
+de stockage S3 (la technologie utilisée par le SSP Cloud) 
+ou sur le format `Parquet`, vous pouvez consulter ce chapitre
+du [cours de `Python` de l'ENSAE](https://pythonds.linogaliana.fr/reads3/)
 
+La première étape consiste à initialiser la connexion (créer un _file system_ 
+distant, via `s3fs.S3FileSystem`, qui pointe vers l'espace de stockage du SSP Cloud). 
+La deuxième ressemble beaucoup à l'écriture d'un fichier en local, il y a seulement une
+couche d'abstraction supplémentaire avec `fs.open`: 
+
+
+```{python}
+#| eval: false
+from utils.import_yaml import import_yaml
+import s3fs
+
+config = import_yaml("config.yaml")
+DESTINATION_OPENFOOD = f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/openfood.parquet"
+
+# Initialisation de la connexion
+fs = s3fs.S3FileSystem(
+    client_kwargs={"endpoint_url": config["ENDPOINT_S3"]}
+)
+
+# Ecriture au format parquet sur l'espace de stockage distant
+with fs.open(DESTINATION_OPENFOOD, "wb") as file_location:
+    openfood.to_parquet(file_location)
+```
 
