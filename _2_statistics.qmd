@@ -1,0 +1,49 @@
+## 2. Faire des statistiques agrégées par catégories
+
+Cette partie permet de calculer en amont de l'application des
+statistiques descriptives qui pourront être utilisées
+par celle-ci. 
+
+Il est préférable de minimiser la quantité de calculs
+faits à la volée dans le cadre d'une application. Sinon,
+le risque est une latence embêtante pour l'utilisateur
+voire un crash du serveur à cause de besoins
+de ressources trop importants.
+
+Cette partie propose ainsi de créer en avance deux
+bases de données synthétisant certaines statistiques
+descriptives:
+
+- Pour les variables nutritionnelles (calories, glucides, etc.), les
+déciles de la distribution. Ils permettront de placer notre produit
+par rapport à des produits similaires (ceux partageant la même variable
+de catégorie, créée précédemment). 
+- Pour les notes synthétiques (nutriscore, score nova et écoscore), le
+nombre de produits dans une catégorie donnée (par exemple les
+fromages à pate crue) qui ont la même note.
+
+### Préliminaire (🟡,🟢,🔵,🔴,⚫)
+
+
+Sur le plan technique, cette partie propose deux cadres de manipulation
+de données différents,
+selon le balisage de la voie:
+
+- 🟡,🟢,🔵: utilisation de `Pandas`
+- 🔴,⚫: requêtes SQL directement sur le fichier `Parquet` grâce à `DuckDB`
+
+
+Cette partie peut être faite sans avoir suivie la précédente. 
+Il est alors recommandé d'effectuer deux actions:
+
+1. Dans le fichier `config.yaml`, remplacer `"projet-funathon"` par votre nom
+d'utilisateur sur le `SSP Cloud`
+2. Utiliser la commande suivante pour copier le fichier d'exemple mis à disposition 
+vers votre espace personnel :
+
+```{python}
+#| eval: false
+!mc cp s3/projet-funathon/2023/sujet4/diffusion/openfood.parquet s3/<USERNAME_SSPCLOUD>/2023/sujet4/diffusion/openfood.parquet
+```
+
+en remplacant `<USERNAME_SSPCLOUD>` par votre nom d'utilisateur sur le SSPCloud. 
