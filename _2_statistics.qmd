@@ -47,3 +47,111 @@ vers votre espace personnel :
 ```
 
 en remplacant `<USERNAME_SSPCLOUD>` par votre nom d'utilisateur sur le SSPCloud. 
+
+
+```{python}
+import pandas as pd
+import s3fs
+
+
+ENDPOINT_URL = "https://minio.lab.sspcloud.fr"
+BUCKET = "projet-funathon"
+URL = "https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz"
+filename = URL.rsplit("/", maxsplit=1)[-1]
+DESTINATION_RAW = f"{BUCKET}/2023/sujet4/diffusion"
+
+fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": ENDPOINT_URL})
+
+info_nutritionnelles = [
+    'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g',
+    'carbohydrates_100g', 'sugars_100g',
+    'proteins_100g', 'salt_100g']
+indices_synthetiques = [
+    "nutriscore_grade", "ecoscore_grade", "nova_group"
+]
+
+# methode 1: pandas
+
+with fs.open(f"{DESTINATION_RAW}/openfood.parquet", "rb") as remote_file:
+    openfood = pd.read_parquet(
+        remote_file,
+        columns = ['product_name', 'code', 'preprocessed_labels', 'coicop'] + \
+        info_nutritionnelles + indices_synthetiques
+    )
+    
+stats_nutritionnelles = openfood.loc[:,info_nutritionnelles + ["coicop"]].groupby("coicop").quantile([i/10 for i in range(1,10)]).reset_index(names=['coicop', 'quantile'])
+stats_nutritionnelles['quantile'] = stats_nutritionnelles['quantile'].mul(10).astype(int)
+stats_nutritionnelles = pd.melt(stats_nutritionnelles, id_vars=['coicop', 'quantile'])
+
+#stats_notes = stats_notes.loc[stats_notes['note'].isin(['a','b','c','d','e'])]
+
+stats_notes = openfood.loc[:,["coicop"] + indices_synthetiques].groupby("coicop").agg({i:'value_counts' for i in indices_synthetiques}).reset_index(names=['coicop', 'note'])
+stats_notes = pd.melt(stats_notes, id_vars = ['coicop','note'])
+stats_notes['note'] = stats_notes['note'].astype(str)
+stats_notes['value'] = stats_notes['value'].astype("Int64")
+stats_notes = stats_notes.dropna().drop_duplicates(subset = ['variable','note','coicop'])
+stats_notes = stats_notes.loc[~stats_notes['note'].isin(['unknown','not-applicable'])]
+stats_notes.loc[stats_notes['variable'] == "nova_group", "note"] = (
+    stats_notes.loc[stats_notes['variable'] == "nova_group", "note"]
+    .astype(float).astype("int64", errors = "ignore").apply(lambda d: chr(d + 64))
+)
+stats_notes['note'] =  stats_notes['note'].str.upper()
+stats_notes['note'] = stats_notes['note'].astype(str)
+
+import numpy as np
+variable = 'energy-kcal_100g'
+example_coicop = stats_nutritionnelles.loc[stats_nutritionnelles['variable'] == variable]
+example_coicop = example_coicop.loc[example_coicop['coicop']=="01.1.7.3.2"]
+example_coicop['color'] = np.where(example_coicop['quantile'] == 8, "red", "royalblue")
+
+
+import plotly.express as px
+
+fig = px.bar(
+    example_coicop,
+    x='quantile', y='value', color = "color", template = "simple_white",
+    title=variable,
+    labels={
+        "quantile": "",
+        "value": "Par portion de 100g"
+    }
+)
+fig.update_layout(showlegend=False)
+fig.update_layout(hovermode="x")
+fig.update_traces(
+    hovertemplate="<br>".join([
+        "Dixième n° %{x}",
+        f"{variable}: " + " au moins %{y} par portion de 100g"
+    ])
+)
+
+import numpy as np
+variable = 'nutriscore_grade'
+example_coicop = stats_notes.loc[stats_notes['variable'] == variable]
+example_coicop = example_coicop.loc[stats_notes['coicop']=="01.1.7.3.2"]
+example_coicop['color'] = np.where(example_coicop['note'] == "B", "red", "royalblue")
+#example_coicop['color'] = np.where(example_coicop['quantile'] == 8, "red", "royalblue")
+
+import plotly.express as px
+
+fig = px.bar(
+    example_coicop,
+    x='note', y='value', color = "color", template = "simple_white",
+    title=variable,
+    labels={
+        "note": "Note",
+        "value": ""
+    }
+)
+fig.update_xaxes(
+    categoryorder='array',
+    categoryarray= ['A', 'B', 'C', 'D', 'E'])
+fig.update_layout(showlegend=False)
+fig.update_layout(hovermode="x")
+fig.update_traces(
+    hovertemplate="<br>".join([
+        "Note %{x}",
+        f"{variable}: " +" %{y} produits"
+    ])
+)
+```
