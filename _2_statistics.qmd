@@ -109,6 +109,81 @@ puis nettoyage de celles-ci ;
 
 ### Import et nettoyage des données `OpenFoodFacts`
 
+Il est possible de lire un CSV de plusieurs manières avec `Python`.
+L'une d'elle se fait à travers le _[context manager](https://book.pythontips.com/en/latest/context_managers.html#context-managers)_. 
+Le module `s3fs` permet d'utiliser ce _context manager_ pour lire un fichier distant, 
+de manière très similaire à la lecture d'un fichier local. 
+
+::: {.cell .markdown}
+<!----- boite 🟢 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔵", title = "Lire les données depuis un espace distant (🔵)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+A partir du _context manager_ intégré à `s3fs`, lire
+les données en suivant les consignes suivantes:
+
+- la localisation des données est stockée dans la variable `INPUT_OPENFOOD`
+- Utiliser l'option `columns = principales_infos + info_nutritionnelles + indices_synthetiques`
+pour n'importer que les variables nécessaires.
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
+
+
+::: {.cell .markdown}
+<!----- boite 🟢 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🟢", title = "Lire les données depuis un espace distant (🟢)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Lors de l'écriture du fichier nous avons utilisé la commande suivante:
+
+```python
+# Ecriture au format parquet sur l'espace de stockage distant
+with fs.open(DESTINATION_OPENFOOD, "wb") as file_location:
+    openfood.to_parquet(file_location)
+```
+
+Nous proposons de suivre la même logique en changeant quelques éléments:
+
+- La variable de chemin à utiliser ici est `INPUT_OPENFOOD` ;
+- Le contexte n'est plus à l'écriture (_"wb"_) mais à la lecture (_"rb"_) ;
+- La commande à exécuter dans ce contexte n'est plus l'écriture d'un fichier parquet
+mais `pd.read_parquet`. Utiliser
+l'option `columns = principales_infos + info_nutritionnelles + indices_synthetiques`
+pour n'importer que les variables nécessaires.
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🟢 ----->
+:::
+
+
 ```{python}
 #| classes: yellow-code
 #| label: get-openfood-parquet
@@ -132,12 +207,136 @@ Les données ont ainsi l'aspect suivant:
 openfood.head(2)
 ```
 
+### Statistiques descriptives (🟡, 🟢 et 🔵)
+
+On va produire deux types de statistiques, pour afficher des graphiques permettant
+de placer le produit dans la distribution de produits similaires:
+
+- Distribution pour chaque nutriment d'intérêt (calorie, gras, sucre...) des déciles
+- Distribution pour chaque score de qualité (nutriscore, score nova et écoscore) des notes
+
+Vous pouvez observer plus bas un exemple. Ici, on va construire une fois pour toute les
+statistiques descriptives. Cela permettra de réduire les calculs faits par notre application au minimum.
 
 ```{python}
-stats_nutritionnelles = openfood.loc[:,info_nutritionnelles + ["coicop"]].groupby("coicop").quantile([i/10 for i in range(1,10)]).reset_index(names=['coicop', 'quantile'])
-stats_nutritionnelles['quantile'] = stats_nutritionnelles['quantile'].mul(10).astype(int)
-stats_nutritionnelles = pd.melt(stats_nutritionnelles, id_vars=['coicop', 'quantile'])
+data_infos_nutritionnelles = openfood.loc[:,info_nutritionnelles + ["coicop"]]
+```
 
+
+::: {.cell .markdown}
+<!----- boite 🔵 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔵", title = "Distribution des nutriments par catégorie de produit (🔵)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Créer le dataframe `stats_nutritionnelles` de la manière suivante:
+
+1. A partir de `data_infos_nutritionnelles`, regrouper par _"coicop"_ et calculer les quantiles 0.1 ... 0.9
+2. Utiliser `reset_index` pour renommer les variables de groupe `coicop` et `quantile`
+3. Transformer la variable quantile pour avoir des valeurs entre 1 et 10 plutôt qu'entre 0.1 et 0.9
+4. Les données sont au format _wide_ ce qui n'est pas très pratique. On préfère en général utiliser le format _long_. Utiliser
+la fonction adaptée pour transformer de _wide_ -> _long_ sur les axes 'coicop' et 'quantile'
+
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
+
+::: {.cell .markdown}
+<!----- boite 🟢 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🟢", title = "Distribution des nutriments par catégorie de produit (🟢)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Créer le dataframe `stats_nutritionnelles` de la manière suivante:
+
+1. A partir de `data_infos_nutritionnelles`, regrouper par _"coicop"_ et calculer les quantiles 0.1 ... 0.9
+grâce à la liste `[i/10 for i in range(1,10)]`
+2. Utiliser `reset_index(names=['coicop', 'quantile'])` pour renommer les variables de groupe 
+
+
+```{=html}
+<details>
+<summary>Réponse en cas de difficulté</summary>
+```
+
+```python
+stats_nutritionnelles = data_infos_nutritionnelles.groupby("coicop").quantile([i/10 for i in range(1,10)]).reset_index(names=['coicop', 'quantile'])
+```
+
+```{=html}
+</details>
+```
+
+3. Utiliser la méthode `mul` pour avoir des quantiles entre 1 et 10 plutôt qu'entre 0.1 et 0.9
+4. Les données sont au format _wide_ ce qui n'est pas très pratique. On préfère en général utiliser le format _long_. Utiliser
+`pd.melt` pour pivoter les données sur les axes 'coicop' et 'quantile'
+
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🟢 ----->
+:::
+
+Pour obtenir un code modulaire, ce qui présente notamment
+l'avantage d'être plus lisible, nous avons créé une fonction
+qui est présente dans le fichier `utils/stats_openfood.py`
+dont le code est le suivant:
+
+```{python}
+#| classes: yellow-code
+#| label: fonction-stats-nutriments
+#| output: false
+
+# Solution pour voie 🟡, 🟢 et 🔵
+def compute_stats_nutriments(data):
+    stats_nutritionnelles = (
+        data
+        .groupby("coicop")
+        .quantile([i/10 for i in range(1,10)])
+        .reset_index(names=['coicop', 'quantile'])
+    )
+    stats_nutritionnelles['quantile'] = stats_nutritionnelles['quantile'].mul(10).astype(int)
+    stats_nutritionnelles = pd.melt(stats_nutritionnelles, id_vars=['coicop', 'quantile'])
+    return stats_nutritionnelles
+```
+
+Celle-ci décompose, pour chaque classe de produit,
+la distribution des nutriments en dix classes. Les données sont ensuite
+restructurées en format _long_ (plus pratique pour l'analyse ultérieure) 
+grâce à `pd.melt`.
+
+Cette fonction peut être utilisée de la manière suivante:
+
+```{python}
+from utils.stats_openfood import compute_stats_nutriments
+stats_nutritionnelles = compute_stats_nutriments(data_infos_nutritionnelles)
+```
+
+```{python}
 #stats_notes = stats_notes.loc[stats_notes['note'].isin(['a','b','c','d','e'])]
 
 stats_notes = openfood.loc[:,["coicop"] + indices_synthetiques].groupby("coicop").agg({i:'value_counts' for i in indices_synthetiques}).reset_index(names=['coicop', 'note'])
