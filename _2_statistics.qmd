@@ -336,9 +336,13 @@ from utils.stats_openfood import compute_stats_nutriments
 stats_nutritionnelles = compute_stats_nutriments(data_infos_nutritionnelles)
 ```
 
-```{python}
-#stats_notes = stats_notes.loc[stats_notes['note'].isin(['a','b','c','d','e'])]
+Nous proposons d'adopter la même logique pour les notes mais au lieu de faire
+des quantiles, on va simplement dénombrer le nombre d'observations qui ont
+cette note dans une classe de produits. 
 
+
+
+```{python}
 stats_notes = openfood.loc[:,["coicop"] + indices_synthetiques].groupby("coicop").agg({i:'value_counts' for i in indices_synthetiques}).reset_index(names=['coicop', 'note'])
 stats_notes = pd.melt(stats_notes, id_vars = ['coicop','note'])
 stats_notes['note'] = stats_notes['note'].astype(str)
