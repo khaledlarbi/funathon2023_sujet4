@@ -114,18 +114,26 @@ puis nettoyage de celles-ci ;
 #| label: get-openfood-parquet
 #| output: false
 
+# Solution pour voie 🟡, 🟢 et 🔵
 import pandas as pd
 
 # methode 1: pandas
-with fs.open(fINPUT_OPENFOOD, "rb") as remote_file:
+with fs.open(INPUT_OPENFOOD, "rb") as remote_file:
     openfood = pd.read_parquet(
         remote_file,
         columns = principales_infos + \
         info_nutritionnelles + indices_synthetiques
     )
-
 ```
 
+Les données ont ainsi l'aspect suivant:
+
+```{python}
+openfood.head(2)
+```
+
+
+```{python}
 stats_nutritionnelles = openfood.loc[:,info_nutritionnelles + ["coicop"]].groupby("coicop").quantile([i/10 for i in range(1,10)]).reset_index(names=['coicop', 'quantile'])
 stats_nutritionnelles['quantile'] = stats_nutritionnelles['quantile'].mul(10).astype(int)
 stats_nutritionnelles = pd.melt(stats_nutritionnelles, id_vars=['coicop', 'quantile'])
