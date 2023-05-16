@@ -43,25 +43,34 @@ vers votre espace personnel :
 
 ```{python}
 #| eval: false
+# remplacer `<USERNAME_SSPCLOUD>` par votre nom d'utilisateur sur le SSPCloud
 !mc cp s3/projet-funathon/2023/sujet4/diffusion/openfood.parquet s3/<USERNAME_SSPCLOUD>/2023/sujet4/diffusion/openfood.parquet
 ```
 
 en remplacant `<USERNAME_SSPCLOUD>` par votre nom d'utilisateur sur le SSPCloud. 
 
+Cette partie va fonctionner en trois temps:
+
+1. Lecture des données `OpenFoodFacts` précédemment produites
+2. Construction de statistiques descriptives standardisées
+3. Construction de graphiques à partir de ces statistiques descriptives
+
+Les étapes 1 et 2 sont séparées conceptuellement pour les parcours 🟡,🟢,🔵. 
+Pour les parcours 🔴 et ⚫, l'utilisation de requêtes SQL fait que ces
+deux étapes conceptuelles sont intriquées. Les parcours 🟡,🟢,🔵
+peuvent observer les morceaux de code proposés dans le cadre 🔴 et ⚫,
+c'est assez instructif. 
+
+Nous proposons d'importer à nouveau nos configurations:
 
 ```{python}
-import pandas as pd
-import s3fs
+from utils.import_yaml import import_yaml
+config = import_yaml("config.yaml")
+```
 
+Les colonnes suivantes nous seront utiles dans cette partie:
 
-ENDPOINT_URL = "https://minio.lab.sspcloud.fr"
-BUCKET = "projet-funathon"
-URL = "https://static.openfoodfacts.org/data/en.openfoodfacts.org.products.csv.gz"
-filename = URL.rsplit("/", maxsplit=1)[-1]
-DESTINATION_RAW = f"{BUCKET}/2023/sujet4/diffusion"
-
-fs = s3fs.S3FileSystem(client_kwargs={"endpoint_url": ENDPOINT_URL})
-
+```{python}
 info_nutritionnelles = [
     'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g',
     'carbohydrates_100g', 'sugars_100g',
@@ -69,16 +78,54 @@ info_nutritionnelles = [
 indices_synthetiques = [
     "nutriscore_grade", "ecoscore_grade", "nova_group"
 ]
+principales_infos = ['product_name', 'code', 'preprocessed_labels', 'coicop']
+```
+
+Voici, à nouveau, la configuration pour permettre à `Python`
+de communiquer avec l'espace de stockage distant:
+
+```{python}
+import s3fs
+
+config = import_yaml("config.yaml")
+INPUT_OPENFOOD = f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/openfood.parquet"
+
+# Initialisation de la connexion
+fs = s3fs.S3FileSystem(
+    client_kwargs={"endpoint_url": config["ENDPOINT_S3"]}
+)
+```
+
+
+
+## Import des données depuis l'espace de stockage distant avec `Pandas` (🟡,🟢,🔵)
+
+Il est recommandé pour les parcours 🟡,🟢,🔵 de travailler avec `Pandas` pour construire
+des statistiques descriptives. Cela se fera en deux étapes:
+
+- Import des données directement depuis l'espace de stockage, sans écriture intermédiaire sur le disque local,
+puis nettoyage de celles-ci ;
+- Construction de fonctions standardisées pour la production de statistiques descriptives.
+
+### Import et nettoyage des données `OpenFoodFacts`
+
+```{python}
+#| classes: yellow-code
+#| label: get-openfood-parquet
+#| output: false
+
+import pandas as pd
 
 # methode 1: pandas
-
-with fs.open(f"{DESTINATION_RAW}/openfood.parquet", "rb") as remote_file:
+with fs.open(fINPUT_OPENFOOD, "rb") as remote_file:
     openfood = pd.read_parquet(
         remote_file,
-        columns = ['product_name', 'code', 'preprocessed_labels', 'coicop'] + \
+        columns = principales_infos + \
         info_nutritionnelles + indices_synthetiques
     )
-    
+
+```
+
 stats_nutritionnelles = openfood.loc[:,info_nutritionnelles + ["coicop"]].groupby("coicop").quantile([i/10 for i in range(1,10)]).reset_index(names=['coicop', 'quantile'])
 stats_nutritionnelles['quantile'] = stats_nutritionnelles['quantile'].mul(10).astype(int)
 stats_nutritionnelles = pd.melt(stats_nutritionnelles, id_vars=['coicop', 'quantile'])
