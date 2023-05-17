@@ -496,61 +496,141 @@ def compute_stats_grades(data, indices_synthetiques):
 stats_notes = compute_stats_grades(openfood_notes, indices_synthetiques)
 ```
 
+### Statistiques descriptives (🔴 et ⚫)
+
+### Sauvegarde dans l'espace de stockage distant
+
+### Création d'un modèle de graphiques
+
+On va utiliser `plotly` pour créer des graphiques et, ultérieurement,
+les afficher sur notre page web. Cela permettra d'avoir un peu de
+réactivité
+
+::: {.cell .markdown}
+<!----- boite 🟢 ----->
+
+```{=html}
 ```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🟢", title = "Distribution des notes par catégorie de produit (🟢)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+
+TO DO
+
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🟢 ----->
+:::
+
+
+```{python}
+# Solution pour voie 🟡
 import numpy as np
-variable = 'energy-kcal_100g'
-example_coicop = stats_nutritionnelles.loc[stats_nutritionnelles['variable'] == variable]
-example_coicop = example_coicop.loc[example_coicop['coicop']=="01.1.7.3.2"]
-example_coicop['color'] = np.where(example_coicop['quantile'] == 8, "red", "royalblue")
-
-
 import plotly.express as px
 
-fig = px.bar(
-    example_coicop,
-    x='quantile', y='value', color = "color", template = "simple_white",
-    title=variable,
-    labels={
-        "quantile": "",
-        "value": "Par portion de 100g"
-    }
-)
-fig.update_layout(showlegend=False)
-fig.update_layout(hovermode="x")
-fig.update_traces(
-    hovertemplate="<br>".join([
-        "Dixième n° %{x}",
-        f"{variable}: " + " au moins %{y} par portion de 100g"
-    ])
-)
+variable = 'energy-kcal_100g'
 
+def figure_infos_nutritionnelles(
+    data, variable_nutritionnelle = 'energy-kcal_100g',
+    coicop = "01.1.7.3.2", valeur_produit = 8
+    ):
+    
+    example_coicop = data.loc[stats_nutritionnelles['variable'] == variable_nutritionnelle]
+    example_coicop = example_coicop.loc[example_coicop['coicop']==coicop]
+    example_coicop['color'] = np.where(example_coicop['quantile'] == valeur_produit, "red", "royalblue")
+
+    fig = px.bar(
+        example_coicop,
+        x='quantile', y='value', color = "color", template = "simple_white",
+        title=variable,
+        labels={
+            "quantile": "",
+            "value": "Par portion de 100g"
+        }
+    )
+    fig.update_layout(showlegend=False)
+    fig.update_layout(hovermode="x")
+    fig.update_traces(
+        hovertemplate="<br>".join([
+            "Dixième n° %{x}",
+            f"{variable}: " + " au moins %{y} par portion de 100g"
+        ])
+    )
+    return fig
+
+figure_infos_nutritionnelles(stats_nutritionnelles)
+```
+
+::: {.cell .markdown}
+<!----- boite 🟢 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🟢", title = "Distribution des notes par catégorie de produit (🟢)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+
+TO DO
+
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🟢 ----->
+:::
+
+
+```{python}
+import plotly.express as px
 import numpy as np
 variable = 'nutriscore_grade'
-example_coicop = stats_notes.loc[stats_notes['variable'] == variable]
-example_coicop = example_coicop.loc[stats_notes['coicop']=="01.1.7.3.2"]
-example_coicop['color'] = np.where(example_coicop['note'] == "B", "red", "royalblue")
-#example_coicop['color'] = np.where(example_coicop['quantile'] == 8, "red", "royalblue")
 
-import plotly.express as px
+def figure_infos_notes(
+    data, variable_note = 'nutriscore_grade',
+    coicop = "01.1.7.3.2", note_produit = "B"
+):
+    example_coicop = stats_notes.loc[stats_notes['variable'] == variable_note]
+    example_coicop = example_coicop.loc[stats_notes['coicop']==coicop]
+    example_coicop['color'] = np.where(example_coicop['note'] == note_produit, "red", "royalblue")
 
-fig = px.bar(
-    example_coicop,
-    x='note', y='value', color = "color", template = "simple_white",
-    title=variable,
-    labels={
-        "note": "Note",
-        "value": ""
-    }
-)
-fig.update_xaxes(
-    categoryorder='array',
-    categoryarray= ['A', 'B', 'C', 'D', 'E'])
-fig.update_layout(showlegend=False)
-fig.update_layout(hovermode="x")
-fig.update_traces(
-    hovertemplate="<br>".join([
-        "Note %{x}",
-        f"{variable}: " +" %{y} produits"
-    ])
-)
+    fig = px.bar(
+        example_coicop,
+        x='note', y='value', color = "color", template = "simple_white",
+        title=variable,
+        labels={
+            "note": "Note",
+            "value": ""
+        }
+    )
+    fig.update_xaxes(
+        categoryorder='array',
+        categoryarray= ['A', 'B', 'C', 'D', 'E'])
+    fig.update_layout(showlegend=False)
+    fig.update_layout(hovermode="x")
+    fig.update_traces(
+        hovertemplate="<br>".join([
+            "Note %{x}",
+            f"{variable}: " +" %{y} produits"
+        ])
+    )
+
+    return fig
 ```
