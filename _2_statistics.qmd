@@ -550,7 +550,7 @@ def figure_infos_nutritionnelles(
     fig = px.bar(
         example_coicop,
         x='quantile', y='value', color = "color", template = "simple_white",
-        title=variable,
+        title=variable_nutritionnelle,
         labels={
             "quantile": "",
             "value": "Par portion de 100g"
@@ -561,13 +561,14 @@ def figure_infos_nutritionnelles(
     fig.update_traces(
         hovertemplate="<br>".join([
             "Dixième n° %{x}",
-            f"{variable}: " + " au moins %{y} par portion de 100g"
+            f"{variable_nutritionnelle}: " + " au moins %{y} par portion de 100g"
         ])
     )
     return fig
 ```
 
 ```{python}
+from utils.construct_figures import figure_infos_nutritionnelles
 figure_infos_nutritionnelles(stats_nutritionnelles).show()
 ```
 
@@ -613,7 +614,7 @@ def figure_infos_notes(
     fig = px.bar(
         example_coicop,
         x='note', y='value', color = "color", template = "simple_white",
-        title=variable,
+        title=variable_note,
         labels={
             "note": "Note",
             "value": ""
@@ -627,7 +628,7 @@ def figure_infos_notes(
     fig.update_traces(
         hovertemplate="<br>".join([
             "Note %{x}",
-            f"{variable}: " +" %{y} produits"
+            f"{variable_note}: " +" %{y} produits"
         ])
     )
 
@@ -635,6 +636,6 @@ def figure_infos_notes(
 ```
 
 ```{python}
-from construct_figures import figure_infos_notes
+from utils.construct_figures import figure_infos_notes
 figure_infos_notes(stats_notes).show()
 ```
