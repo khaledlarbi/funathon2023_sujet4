@@ -538,14 +538,12 @@ TO DO
 import numpy as np
 import plotly.express as px
 
-variable = 'energy-kcal_100g'
-
 def figure_infos_nutritionnelles(
     data, variable_nutritionnelle = 'energy-kcal_100g',
     coicop = "01.1.7.3.2", valeur_produit = 8
     ):
     
-    example_coicop = data.loc[stats_nutritionnelles['variable'] == variable_nutritionnelle]
+    example_coicop = data.loc[data['variable'] == variable_nutritionnelle]
     example_coicop = example_coicop.loc[example_coicop['coicop']==coicop]
     example_coicop['color'] = np.where(example_coicop['quantile'] == valeur_produit, "red", "royalblue")
 
@@ -567,8 +565,10 @@ def figure_infos_nutritionnelles(
         ])
     )
     return fig
+```
 
-figure_infos_nutritionnelles(stats_nutritionnelles)
+```{python}
+figure_infos_nutritionnelles(stats_nutritionnelles).show()
 ```
 
 ::: {.cell .markdown}
@@ -601,13 +601,12 @@ TO DO
 ```{python}
 import plotly.express as px
 import numpy as np
-variable = 'nutriscore_grade'
 
 def figure_infos_notes(
     data, variable_note = 'nutriscore_grade',
     coicop = "01.1.7.3.2", note_produit = "B"
 ):
-    example_coicop = stats_notes.loc[stats_notes['variable'] == variable_note]
+    example_coicop = data.loc[data['variable'] == variable_note]
     example_coicop = example_coicop.loc[stats_notes['coicop']==coicop]
     example_coicop['color'] = np.where(example_coicop['note'] == note_produit, "red", "royalblue")
 
@@ -633,6 +632,9 @@ def figure_infos_notes(
     )
 
     return fig
+```
 
-figure_infos_notes(stats_notes)
+```{python}
+from construct_figures import figure_infos_notes
+figure_infos_notes(stats_notes).show()
 ```
