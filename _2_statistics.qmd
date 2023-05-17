@@ -633,4 +633,6 @@ def figure_infos_notes(
     )
 
     return fig
+
+figure_infos_notes(stats_notes)
 ```
