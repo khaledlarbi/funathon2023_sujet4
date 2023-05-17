@@ -340,22 +340,163 @@ Nous proposons d'adopter la même logique pour les notes mais au lieu de faire
 des quantiles, on va simplement dénombrer le nombre d'observations qui ont
 cette note dans une classe de produits. 
 
-
+Nous allons utiliser le `DataFrame` suivant pour les calculs de notes:
 
 ```{python}
-stats_notes = openfood.loc[:,["coicop"] + indices_synthetiques].groupby("coicop").agg({i:'value_counts' for i in indices_synthetiques}).reset_index(names=['coicop', 'note'])
-stats_notes = pd.melt(stats_notes, id_vars = ['coicop','note'])
-stats_notes['note'] = stats_notes['note'].astype(str)
-stats_notes['value'] = stats_notes['value'].astype("Int64")
-stats_notes = stats_notes.dropna().drop_duplicates(subset = ['variable','note','coicop'])
-stats_notes = stats_notes.loc[~stats_notes['note'].isin(['unknown','not-applicable'])]
+openfood_notes = openfood.loc[:,["coicop"] + indices_synthetiques]
+```
+
+::: {.cell .markdown}
+<!----- boite 🟢 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🟢", title = "Distribution des notes par catégorie de produit (🟢)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+1. Après un `groupby("coicop")`, effectuer un décompte des notes (`value_counts` en `Pandas`)
+pour chaque variable de la liste `indices_synthetiques` grâce à la méthode `agg`
+puis renommer les deux variables d'index 'coicop' et 'note' grâce à la méthode `reset_index`
+
+```{=html}
+<details>
+<summary>Réponse en cas de difficulté</summary>
+```
+
+```python
+stats_notes = (
+    openfood_notes
+    .groupby("coicop")
+    .agg({i:'value_counts' for i in indices_synthetiques})
+    .reset_index(names=['coicop', 'note'])
+)
+```
+
+```{=html}
+</details>
+
+```
+
+2. Utiliser `pd.melt` pour pivoter les données vers un format _long_
+via les axes `coicop` et `note`
+
+3. Convertir la colonne `value` obtenue au format `Int64` (qui permet d'avoir
+des valeurs manquantes)
+
+4. Dédupliquer les données en ne gardant que les paires uniques sur les variables
+`variable, note, coicop` grâce à la méthode `drop_duplicates`
+
+5. Retirer les observations pour lesquelles la variable `note` est égale
+à `unknown`  ou `not-applicable`
+
+6. Pour avoir les notes de toutes les variables sous forme de lettre, utiliser
+le code suivant:
+
+```python
 stats_notes.loc[stats_notes['variable'] == "nova_group", "note"] = (
     stats_notes.loc[stats_notes['variable'] == "nova_group", "note"]
     .astype(float).astype("int64", errors = "ignore").apply(lambda d: chr(d + 64))
 )
-stats_notes['note'] =  stats_notes['note'].str.upper()
-stats_notes['note'] = stats_notes['note'].astype(str)
+```
 
+7. Utiliser la méthode `str.upper` puis convertir en string avec `astype(str)` 
+pour avoir une variable de notes harmonisées
+
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🟢 ----->
+:::
+
+::: {.cell .markdown}
+<!----- boite 🔵 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔵", title = "Distribution des notes par catégorie de produit (🔵)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+1. Pour chaque valeur de la variable `coicop`,
+avec la méthode `agg`, effectuer un décompte des notes (`value_counts` en `Pandas`)
+pour chaque variable de la liste `indices_synthetiques` grâce à la méthode `agg`.
+Renommer ensuite les deux variables d'index 'coicop' et 'note' grâce à la méthode `reset_index`
+
+2. Pivoter les données vers un format _long_
+via les axes `coicop` et `note`
+
+3. Convertir la colonne `value` obtenue au format `Int64` (qui permet d'avoir
+des valeurs manquantes)
+
+4. Dédupliquer les données en ne gardant que les paires uniques sur les variables
+`variable, note, coicop`
+
+5. Retirer les observations pour lesquelles la variable `note` est égale
+à `unknown`  ou `not-applicable`
+
+6. Pour avoir les notes de toutes les variables sous forme de lettre, utiliser
+le code suivant:
+
+```python
+stats_notes.loc[stats_notes['variable'] == "nova_group", "note"] = (
+    stats_notes.loc[stats_notes['variable'] == "nova_group", "note"]
+    .astype(float).astype("int64", errors = "ignore").apply(lambda d: chr(d + 64))
+)
+```
+
+7. Passer toutes les notes en majuscules puis convertir en string avec `astype(str)` 
+
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
+
+
+```{python}
+# Solution pour voie 🟡, 🟢 et 🔵
+def compute_stats_grades(data, indices_synthetiques):
+    stats_notes = (
+        data
+        .groupby("coicop")
+        .agg({i:'value_counts' for i in indices_synthetiques})
+        .reset_index(names=['coicop', 'note'])
+    )
+    stats_notes = pd.melt(stats_notes, id_vars = ['coicop','note'])
+    stats_notes['note'] = stats_notes['note'].astype(str)
+    stats_notes['value'] = stats_notes['value'].astype("Int64")
+    stats_notes = stats_notes.dropna().drop_duplicates(subset = ['variable','note','coicop'])
+    stats_notes = stats_notes.loc[~stats_notes['note'].isin(['unknown','not-applicable'])]
+    stats_notes.loc[stats_notes['variable'] == "nova_group", "note"] = (
+            stats_notes.loc[stats_notes['variable'] == "nova_group", "note"]
+            .astype(float).astype("int64", errors = "ignore").apply(lambda d: chr(d + 64))
+        )
+    stats_notes['note'] =  stats_notes['note'].str.upper()
+    stats_notes['note'] = stats_notes['note'].astype(str)
+  
+    return stats_notes
+
+stats_notes = compute_stats_grades(openfood_notes, indices_synthetiques)
+```
+
+```{python}
 import numpy as np
 variable = 'energy-kcal_100g'
 example_coicop = stats_nutritionnelles.loc[stats_nutritionnelles['variable'] == variable]
