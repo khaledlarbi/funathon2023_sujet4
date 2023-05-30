@@ -569,7 +569,10 @@ def figure_infos_nutritionnelles(
 
 ```{python}
 from utils.construct_figures import figure_infos_nutritionnelles
-figure_infos_nutritionnelles(stats_nutritionnelles).show()
+fig = figure_infos_nutritionnelles(stats_nutritionnelles).show()
+fig.update_layout(width=800, height=400)
+
+fig
 ```
 
 ::: {.cell .markdown}
@@ -637,5 +640,8 @@ def figure_infos_notes(
 
 ```{python}
 from utils.construct_figures import figure_infos_notes
-figure_infos_notes(stats_notes).show()
+fig = figure_infos_notes(stats_notes)
+fig.update_layout(width=800, height=400)
+
+fig
 ```
