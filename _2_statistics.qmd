@@ -658,7 +658,56 @@ stats_nutritionnelles_sql = pd.concat(stats_nutritionnelles_sql)
 stats_nutritionnelles_sql.head(2)
 ```
 
-Pour les notes, la logique est la même
+Pour les notes, la logique est la même :
+
+::: {.cell .markdown}
+<!----- boite ⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "⚫", title = "Distribution des notes par catégorie de produit (⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Créer une fonction `count_one_variable_sql` prenant un argument nommé `con` (connexion DuckDB) et un 
+argument `variable` (par défaut égal à `nova_group`)
+effectuant les opérations suivantes:
+
+- Créer un `DataFrame` `Pandas` après avoir agrégé les données via `DuckDB` grâce
+à une requête qui, pour chaque coicop et type de note (cf. argument `variable`)
+compte le nombre d'observations. 
+
+- Crée une variable `variable` égale à la valeur de l'argument `variable`
+
+- Nettoie la variable `note` selon le modèle suivant:
+
+```python
+stats_one_variable['note'] = stats_one_variable['note'].astype(str)
+stats_one_variable = stats_one_variable.dropna().drop_duplicates(subset = ['variable','note','coicop'])
+stats_one_variable = stats_one_variable.loc[~stats_one_variable['note'].isin(['unknown','not-applicable'])]
+stats_one_variable.loc[stats_one_variable['variable'] == "nova_group", "note"] = (
+            stats_one_variable.loc[stats_one_variable['variable'] == "nova_group", "note"]
+            .astype(float).astype("int64", errors = "ignore").apply(lambda d: chr(d + 64))
+        )
+stats_one_variable['note'] =  stats_one_variable['note'].str.upper()
+```
+
+- Créer le `DataFrame` qui combine toutes ces statistiques de la manière suivante
+en bouclant sur la liste `["nutriscore_grade", "ecoscore_grade", "nova_group"]`
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end ⚫ ----->
+:::
+
 
 ::: {.cell .markdown}
 <!----- boite 🔴 ----->
@@ -675,21 +724,39 @@ create_box_level(color = "🔴", title = "Distribution des notes par catégorie 
 ```
 
 Créer une fonction `count_one_variable_sql` prenant un argument nommé `con` (connexion DuckDB) et un 
-argument `variable` (par défaut égal à `energy-kcal_100g`)
+argument `variable` (par défaut égal à `nutriscore_grade`)
 effectuant les opérations suivantes:
 
 - Créer un `DataFrame` `Pandas` après avoir agrégé les données via `DuckDB` grâce
 au modèle de requête
 
 ```python
-f"SELECT category, {variable} AS note, COUNT({variable}) AS value FROM read_parquet('s3://{INPUT_OPENFOOD}') GROUP BY category, {variable}"
+f"SELECT coicop, {variable} AS note, COUNT({variable}) AS value FROM read_parquet('s3://{path_within_s3}') GROUP BY coicop, {variable}"
 ```
 
-- Pivoter les données vers un format _long_ autour de l'axe `coicop` avec `Pandas`. Nommer la variable obtenue `quantile`
+- Crée une variable `variable` égale à la valeur de l'argument `variable`
 
-- Retirer le préfixe `quantile` à la colonne obtenue
+- Nettoie la variable `note` selon le modèle suivant:
+
+```python
+stats_one_variable['note'] = stats_one_variable['note'].astype(str)
+stats_one_variable = stats_one_variable.dropna().drop_duplicates(subset = ['variable','note','coicop'])
+stats_one_variable = stats_one_variable.loc[~stats_one_variable['note'].isin(['unknown','not-applicable'])]
+stats_one_variable.loc[stats_one_variable['variable'] == "nova_group", "note"] = (
+            stats_one_variable.loc[stats_one_variable['variable'] == "nova_group", "note"]
+            .astype(float).astype("int64", errors = "ignore").apply(lambda d: chr(d + 64))
+        )
+stats_one_variable['note'] =  stats_one_variable['note'].str.upper()
+
+```
 
 - Créer le `DataFrame` qui combine toutes ces statistiques de la manière suivante:
+
+```python
+grades = ["nutriscore_grade", "ecoscore_grade", "nova_group"]
+stats_notes_sql = [count_one_variable_sql(con, note, INPUT_OPENFOOD) for note in grades]
+stats_notes_sql = pd.concat(stats_notes_sql)
+```
 
 ```{=html}
 </details>
@@ -703,8 +770,8 @@ f"SELECT category, {variable} AS note, COUNT({variable}) AS value FROM read_parq
 def count_one_variable_sql(con, variable, path_within_s3 = "temp.parquet"):
     query = f"SELECT coicop, {variable} AS note, COUNT({variable}) AS value FROM read_parquet('s3://{path_within_s3}') GROUP BY coicop, {variable}"
     stats_one_variable = con.sql(query).df().dropna()
-    stats_one_variable['note'] = stats_one_variable['note'].astype(str)
     stats_one_variable['variable'] = variable
+    stats_one_variable['note'] = stats_one_variable['note'].astype(str)
     stats_one_variable = stats_one_variable.dropna().drop_duplicates(subset = ['variable','note','coicop'])
     stats_one_variable = stats_one_variable.loc[~stats_one_variable['note'].isin(['unknown','not-applicable'])]
     stats_one_variable.loc[stats_one_variable['variable'] == "nova_group", "note"] = (
@@ -730,8 +797,7 @@ stats_notes_sql = pd.concat(stats_notes_sql)
 ### Sauvegarde dans l'espace de stockage distant
 
 
-```{python}
-#| eval: false
+```python
 def write_stats_to_s3(data, destination):
     # Ecriture au format parquet sur l'espace de stockage distant
     with fs.open(destination, "wb") as file_location:
@@ -946,6 +1012,7 @@ def figure_infos_nutritionnelles(
 ```
 
 ```{python}
+#| output: false
 from utils.construct_figures import figure_infos_nutritionnelles
 fig = figure_infos_nutritionnelles(stats_nutritionnelles)
 fig.update_layout(width=800, height=400)
@@ -1148,6 +1215,7 @@ def figure_infos_notes(
 ```
 
 ```{python}
+#| output: false
 from utils.construct_figures import figure_infos_notes
 fig = figure_infos_notes(stats_notes)
 fig.update_layout(width=800, height=400)

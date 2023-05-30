@@ -1,0 +1,41 @@
+# 3. Comparer un produit à un groupe similaire
+
+Tout ce travail préliminaire nous permettra d'afficher sur notre application des statistiques
+propres à chaque catégorie.
+
+```{python}
+info_nutritionnelles = [
+    'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g',
+    'carbohydrates_100g', 'sugars_100g',
+    'proteins_100g', 'salt_100g']
+indices_synthetiques = [
+    "nutriscore_grade", "ecoscore_grade", "nova_group"
+]
+principales_infos = ['product_name', 'code', 'preprocessed_labels', 'coicop']
+liste_colonnes = principales_infos + indices_synthetiques + info_nutritionnelles
+liste_colonnes_sql = [f"\"{s}\"" for s in liste_colonnes]
+liste_colonnes_sql = ', '.join(liste_colonnes_sql)
+```
+
+
+```{python}
+info_nutritionnelles = openfood.filter(like = "_100g").columns.tolist()
+list_columns = ["code", "product_name"] + info_nutritionnelles
+```
+
+```{python}
+import duckdb
+con = duckdb.connect(database=':memory:')
+con.execute("""
+    INSTALL httpfs;
+    LOAD httpfs;
+    SET s3_endpoint='minio.lab.sspcloud.fr'
+""")
+
+from utils.import_yaml import import_yaml
+config = import_yaml("config.yaml")
+
+INPUT_OPENFOOD = f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/openfood.parquet"
+
+df = con.sql(f"SELECT {liste_colonnes_sql} FROM read_parquet('s3://{INPUT_OPENFOOD}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)").df()
+```
