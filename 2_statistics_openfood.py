@@ -63,7 +63,7 @@ stats_nutritionnelles_sql = [quantile_one_variable_sql(nutriment) for nutriment 
 stats_nutritionnelles_sql = pd.concat(stats_nutritionnelles_sql)
 
 
-def count_one_variable_sql(variable):
+def count_one_variable_sql(con, variable):
     query = f"SELECT category, {variable} AS note, COUNT({variable}) AS value FROM read_parquet('temp.parquet') GROUP BY category, {variable}"
     stats_one_variable = con.sql(query).df().dropna()
     stats_one_variable['variable'] = variable

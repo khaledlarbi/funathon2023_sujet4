@@ -1,0 +1,10 @@
+project:
+  title: "funathon-streamlit"
+  render:
+    - "draft.qmd"
+
+format:
+    ipynb:
+        output: true
+
+output: true

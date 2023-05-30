@@ -1,4 +1,4 @@
-## 2. Faire des statistiques agrégées par catégories
+# 2️⃣ Faire des statistiques agrégées par catégories
 
 Cette partie permet de calculer en amont de l'application des
 statistiques descriptives qui pourront être utilisées
@@ -22,7 +22,7 @@ de catégorie, créée précédemment).
 nombre de produits dans une catégorie donnée (par exemple les
 fromages à pate crue) qui ont la même note.
 
-### Préliminaire (🟡,🟢,🔵,🔴,⚫)
+## 2.1. Préliminaire (🟡,🟢,🔵,🔴,⚫)
 
 
 Sur le plan technique, cette partie propose deux cadres de manipulation
@@ -32,22 +32,6 @@ selon le balisage de la voie:
 - 🟡,🟢,🔵: utilisation de `Pandas`
 - 🔴,⚫: requêtes SQL directement sur le fichier `Parquet` grâce à `DuckDB`
 
-
-Cette partie peut être faite sans avoir suivie la précédente. 
-Il est alors recommandé d'effectuer deux actions:
-
-1. Dans le fichier `config.yaml`, remplacer `"projet-funathon"` par votre nom
-d'utilisateur sur le `SSP Cloud`
-2. Utiliser la commande suivante pour copier le fichier d'exemple mis à disposition 
-vers votre espace personnel :
-
-```{python}
-#| eval: false
-# remplacer `<USERNAME_SSPCLOUD>` par votre nom d'utilisateur sur le SSPCloud
-!mc cp s3/projet-funathon/2023/sujet4/diffusion/openfood.parquet s3/<USERNAME_SSPCLOUD>/2023/sujet4/diffusion/openfood.parquet
-```
-
-en remplacant `<USERNAME_SSPCLOUD>` par votre nom d'utilisateur sur le SSPCloud. 
 
 Cette partie va fonctionner en trois temps:
 
@@ -60,6 +44,35 @@ Pour les parcours 🔴 et ⚫, l'utilisation de requêtes SQL fait que ces
 deux étapes conceptuelles sont intriquées. Les parcours 🟡,🟢,🔵
 peuvent observer les morceaux de code proposés dans le cadre 🔴 et ⚫,
 c'est assez instructif. 
+
+::: {.cell .markdown}
+```{=html}
+<div class="alert alert-warning" role="alert" style="color: rgba(0,0,0,.8); background-color: white; margin-top: 1em; margin-bottom: 1em; margin:1.5625emauto; padding:0 .6rem .8rem!important;overflow:hidden; page-break-inside:avoid; border-radius:.25rem; box-shadow:0 .2rem .5rem rgba(0,0,0,.05),0 0 .05rem rgba(0,0,0,.1); transition:color .25s,background-color .25s,border-color .25s ; border-right: 1px solid #dee2e6 ; border-top: 1px solid #dee2e6 ; border-bottom: 1px solid #dee2e6 ; border-left:.2rem solid #ffc10780;">
+<h3 class="alert-heading"><i class="fa fa-lightbulb-o"></i> Hint</h3>
+```
+
+Cette partie peut être faite sans avoir suivie la précédente. 
+Il est alors recommandé d'effectuer deux actions:
+
+1. Dans le fichier `config.yaml`, remplacer `"projet-funathon"` par votre nom
+d'utilisateur sur le `SSP Cloud`
+2. Créer une cellule en copiant-collant le texte suivant et
+en remplacant `<USERNAME_SSPCLOUD>` par votre nom d'utilisateur sur le SSPCloud. 
+
+```python
+# créer une cellule de code et copier dedans ce texte
+# remplacer `<USERNAME_SSPCLOUD>` par votre nom d'utilisateur sur le SSPCloud
+!mc cp s3/projet-funathon/2023/sujet4/diffusion/openfood.parquet s3/<USERNAME_SSPCLOUD>/2023/sujet4/diffusion/openfood.parquet
+```
+
+Cette commande permet de copier le fichier d'exemple que nous avons
+mis à disposition vers votre espace personnel.
+
+```{=html}
+</div>
+```
+:::
+
 
 Nous proposons d'importer à nouveau nos configurations:
 
@@ -97,8 +110,7 @@ fs = s3fs.S3FileSystem(
 ```
 
 
-
-## Import des données depuis l'espace de stockage distant avec `Pandas` (🟡,🟢,🔵)
+## 2.2. Import des données depuis l'espace de stockage distant avec `Pandas` (🟡,🟢,🔵)
 
 Il est recommandé pour les parcours 🟡,🟢,🔵 de travailler avec `Pandas` pour construire
 des statistiques descriptives. Cela se fera en deux étapes:
@@ -107,7 +119,7 @@ des statistiques descriptives. Cela se fera en deux étapes:
 puis nettoyage de celles-ci ;
 - Construction de fonctions standardisées pour la production de statistiques descriptives.
 
-### Import et nettoyage des données `OpenFoodFacts`
+### Import et nettoyage des données `OpenFoodFacts` (🟡, 🟢 et 🔵)
 
 Il est possible de lire un CSV de plusieurs manières avec `Python`.
 L'une d'elle se fait à travers le _[context manager](https://book.pythontips.com/en/latest/context_managers.html#context-managers)_. 
@@ -496,15 +508,358 @@ def compute_stats_grades(data, indices_synthetiques):
 stats_notes = compute_stats_grades(openfood_notes, indices_synthetiques)
 ```
 
+## 2.3. Import des données avec `DuckDB` (🔴 et ⚫)
+
+### Import des données `OpenFoodFacts` (🔴 et ⚫)
+
+Cette partie propose pour les parcours 🔴 et ⚫ de reproduire l'analyse faite par
+les parcours 🟡,🟢 et 🔵 via `Pandas`. 
+
+`DuckDB` va être utilisé pour lire et agréger les données. 
+Pour lire directement depuis un système de stockage distant, sans pré-télécharger les 
+données, vous pouvez utiliser la configuration suivante de `DuckDB`:
+
+```{python}
+import duckdb
+con = duckdb.connect(database=':memory:')
+con.execute("""
+    INSTALL httpfs;
+    LOAD httpfs;
+    SET s3_endpoint='minio.lab.sspcloud.fr'
+""")
+```
+
+Et voici un exemple minimal de lecture de données à partir du chemin
+`INPUT_OPENFOOD` défini précédemment. 
+
+```{python}
+duckdb_data = con.sql(
+    f"SELECT product_name, preprocessed_labels, coicop, energy_100g FROM read_parquet('s3://{INPUT_OPENFOOD}') LIMIT 10"
+)
+duckdb_data.df() #conversion en pandas dataframe
+```
+
 ### Statistiques descriptives (🔴 et ⚫)
+
+Nous proposons de fonctionner en deux temps:
+
+- Créer une requête SQL qui, pour chaque classe de produit (notre variable de COICOP),
+calcule les déciles de la distribution de chaque variable directement depuis une clause
+`SELECT`. Cette requête étant assez difficile, elle est donnée directement pour le 
+parcours 🔴 (mais pas de cadeau pour le parcours ⚫).
+- Les données à l'issue de cette étape étant sous une forme _wide_, ce qui est peu pratique,
+nous proposons de les pivoter pour avoir un format _long_ (comme pour le parcours 🟡,🟢 et🔵)
+
+::: {.cell .markdown}
+<!----- boite ⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "⚫", title = "Distribution des nutriments par catégorie de produit (⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Créer une fonction `quantile_one_variable_sql`
+prenant un argument nommé `con` (connexion DuckDB) et un 
+argument `variable` (par défaut égal à `energy-kcal_100g`)
+effectuant les opérations suivantes:
+
+- Créer un `DataFrame` `Pandas` après avoir agrégé les données via `DuckDB`
+en calculant les déciles de la distribution de variable pour chaque catégorie pour
+une caractéristique nutritionnelle donnée
+
+- Pivoter les données vers un format _long_ autour de l'axe `coicop` avec `Pandas`. Nommer la variable obtenue `quantile`
+
+- Retirer le préfixe `quantile` à la colonne obtenue
+
+- Créer le `DataFrame` qui combine toutes ces statistiques de la manière suivante:
+
+```python
+stats_nutritionnelles_sql = [quantile_one_variable_sql(con, nutriment) for nutriment in info_nutritionnelles]
+stats_nutritionnelles_sql = pd.concat(stats_nutritionnelles_sql)
+stats_nutritionnelles_sql.head(2)
+```
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end ⚫ ----->
+:::
+
+::: {.cell .markdown}
+<!----- boite 🔴 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔴", title = "Distribution des nutriments par catégorie de produit (🔴)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Créer une fonction `quantile_one_variable_sql`
+prenant un argument nommé `con` (connexion DuckDB) et un 
+argument `variable` (par défaut égal à `energy-kcal_100g`)
+effectuant les opérations suivantes:
+
+- Créer un `DataFrame` `Pandas` après avoir agrégé les données via `DuckDB` grâce
+au modèle de requête
+
+```python
+SELECT coicop, " + ", ".join(
+        [f"PERCENTILE_CONT({q/10}) WITHIN GROUP (ORDER BY \"{variable}\") AS quantile{q}" for q in range(1,10)]
+    ) + f" FROM read_parquet('s3://{INPUT_OPENFOOD}') GROUP BY coicop"
+```
+
+- Pivoter les données vers un format _long_ autour de l'axe `coicop` avec `Pandas`. Nommer la variable obtenue `quantile`
+
+- Retirer le préfixe `quantile` à la colonne obtenue
+
+- Créer le `DataFrame` qui combine toutes ces statistiques de la manière suivante:
+
+```python
+stats_nutritionnelles_sql = [quantile_one_variable_sql(con, nutriment) for nutriment in info_nutritionnelles]
+stats_nutritionnelles_sql = pd.concat(stats_nutritionnelles_sql)
+stats_nutritionnelles_sql.head(2)
+```
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔴 ----->
+:::
+
+```{python}
+def quantile_one_variable_sql(con, variable="energy-kcal_100g", path_within_s3 = "temp.parquet"):
+    query = "SELECT coicop, " + ", ".join(
+        [f"PERCENTILE_CONT({q/10}) WITHIN GROUP (ORDER BY \"{variable}\") AS quantile{q}" for q in range(1,10)]
+    ) + f" FROM read_parquet('s3://{path_within_s3}') GROUP BY coicop"
+    quantile_one_variable = pd.melt(con.sql(query).df(), id_vars="coicop", var_name="quantile")
+    quantile_one_variable['quantile'] = quantile_one_variable['quantile'].str.replace("quantile","").astype(int)
+    quantile_one_variable['variable'] = variable
+    return quantile_one_variable
+```
+
+```{python}
+stats_nutritionnelles_sql = [quantile_one_variable_sql(con, nutriment, INPUT_OPENFOOD) for nutriment in info_nutritionnelles]
+stats_nutritionnelles_sql = pd.concat(stats_nutritionnelles_sql)
+stats_nutritionnelles_sql.head(2)
+```
+
+Pour les notes, la logique est la même
+
+::: {.cell .markdown}
+<!----- boite 🔴 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔴", title = "Distribution des notes par catégorie de produit (🔴)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Créer une fonction `count_one_variable_sql` prenant un argument nommé `con` (connexion DuckDB) et un 
+argument `variable` (par défaut égal à `energy-kcal_100g`)
+effectuant les opérations suivantes:
+
+- Créer un `DataFrame` `Pandas` après avoir agrégé les données via `DuckDB` grâce
+au modèle de requête
+
+```python
+f"SELECT category, {variable} AS note, COUNT({variable}) AS value FROM read_parquet('s3://{INPUT_OPENFOOD}') GROUP BY category, {variable}"
+```
+
+- Pivoter les données vers un format _long_ autour de l'axe `coicop` avec `Pandas`. Nommer la variable obtenue `quantile`
+
+- Retirer le préfixe `quantile` à la colonne obtenue
+
+- Créer le `DataFrame` qui combine toutes ces statistiques de la manière suivante:
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔴 ----->
+:::
+
+```{python}
+def count_one_variable_sql(con, variable, path_within_s3 = "temp.parquet"):
+    query = f"SELECT coicop, {variable} AS note, COUNT({variable}) AS value FROM read_parquet('s3://{path_within_s3}') GROUP BY coicop, {variable}"
+    stats_one_variable = con.sql(query).df().dropna()
+    stats_one_variable['note'] = stats_one_variable['note'].astype(str)
+    stats_one_variable['variable'] = variable
+    stats_one_variable = stats_one_variable.dropna().drop_duplicates(subset = ['variable','note','coicop'])
+    stats_one_variable = stats_one_variable.loc[~stats_one_variable['note'].isin(['unknown','not-applicable'])]
+    stats_one_variable.loc[stats_one_variable['variable'] == "nova_group", "note"] = (
+            stats_one_variable.loc[stats_one_variable['variable'] == "nova_group", "note"]
+            .astype(float).astype("int64", errors = "ignore").apply(lambda d: chr(d + 64))
+        )
+    stats_one_variable['note'] =  stats_one_variable['note'].str.upper()
+    stats_one_variable['note'] = stats_one_variable['note'].astype(str)
+
+
+    return stats_one_variable
+```
+
+```{python}
+grades = ["nutriscore_grade", "ecoscore_grade", "nova_group"]
+stats_notes_sql = [count_one_variable_sql(con, note, INPUT_OPENFOOD) for note in grades]
+stats_notes_sql = pd.concat(stats_notes_sql)
+```
+
+
+
 
 ### Sauvegarde dans l'espace de stockage distant
 
-### Création d'un modèle de graphiques
 
-On va utiliser `plotly` pour créer des graphiques et, ultérieurement,
+```{python}
+#| eval: false
+def write_stats_to_s3(data, destination):
+    # Ecriture au format parquet sur l'espace de stockage distant
+    with fs.open(destination, "wb") as file_location:
+        data.to_parquet(file_location)
+
+write_stats_to_s3(stats_nutritionnelles, f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/stats_nutritionnelles_pandas.parquet")
+write_stats_to_s3(stats_notes, f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/stats_notes_pandas.parquet")
+write_stats_to_s3(stats_nutritionnelles_sql, f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/stats_nutritionnelles_sql.parquet")
+write_stats_to_s3(stats_notes_sql, f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/stats_notes_sql.parquet")
+```
+
+
+
+### Création d'un modèle de graphiques (🟡,🟢,🔵,🔴,⚫)
+
+On va utiliser `Plotly` pour créer des graphiques et, ultérieurement,
 les afficher sur notre page web. Cela permettra d'avoir un peu de
-réactivité
+réactivité.
+
+::: {.cell .markdown}
+<!----- boite ⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "⚫", title = "Modèle de figure pour les qualités nutritionnelles (⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Créer une fonction standardisée qui présente, sous forme de diagramme en barre,
+les valeurs nutritionnelles dans une classe de produit donnée (identifiée par la COICOP)
+de chaque décile.
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end ⚫ ----->
+:::
+
+
+::: {.cell .markdown}
+<!----- boite 🔴 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔴", title = "Modèle de figure pour les qualités nutritionnelles (🔴)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Créer une fonction standardisée dont les arguments sont
+
+- Un jeu de données nommé `data`
+- Une caractéristique nutritionnelle nommée `variable_nutritionnelle` par défaut égale à `energy-kcal_100g`
+- Une catégorie nommée `coicop`, par défaut égale à `01.1.7.3.2`
+- Un décile d'appartenance nommé `valeur_produit` par défaut égal à 8 
+
+Cette fonction effectue les tâches suivantes:
+
+- Ne conserver, dans notre ensemble de valeurs agrégées, que celles relatives à la COICOP et
+à la caractéristique nutritionnelle qu'on recherche ;
+- Représenter sous forme de diagramme en barre les valeurs nutritionnelles pour chaque décile de la 
+distribution avec, en rouge, celle de notre produit (`valeur_produit`)
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔴 ----->
+:::
+
+::: {.cell .markdown}
+<!----- boite 🔵 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔵", title = "Modèle de figure pour les qualités nutritionnelles (🔵)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Pour préparer cet exercice, créer les objets suivants:
+
+```python
+data = stats_nutritionnelles.copy()
+variable_nutritionnelle = 'energy-kcal_100g'
+coicop = "01.1.7.3.2"
+valeur_produit = 8
+```
+
+1. Ne conserver que les observations où `data['variable']` est égale à la valeur `variable_nutritionnelle`
+et où la variable `coicop` est égale à la valeur `coicop`. A l'issue de ces
+filtres, nommer le dataframe obtenu `example_coicop`
+2. Créer une 
+colonne stockant les couleurs de notre graphique. On utilisera le rouge (_red_) lorsque la variable quantile
+est égale à `valeur_produit` et du bleu (_royalblue_) sinon. Nommer cette variable `color`.
+3. Créer un diagramme en barre avec:
+        + sur l'axe des _x_ les quantiles
+        + sur l'axe des _y_, la valeur à représenter
+        + la couleur à partir de la variable `color`
+        + Les _labels_ : pour l'axe des _x_ ne rien mettre et pour l'axe des _y_ : _"Par portion de 100g"_
+        + Masquer la légende
+4. Encapsuler ce code dans une fonction nommée `figure_infos_nutritionnelles` dont les arguments
+sont `data`, `variable_nutritionnelle = 'energy-kcal_100g'`, `coicop = "01.1.7.3.2"` et `valeur_produit = 8`.
+
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
 
 ::: {.cell .markdown}
 <!----- boite 🟢 ----->
@@ -514,15 +869,36 @@ réactivité
 #| echo: false
 #| output: asis
 from utils_notebook import create_box_level
-create_box_level(color = "🟢", title = "Distribution des notes par catégorie de produit (🟢)")
+create_box_level(color = "🟢", title = "Modèle de figure pour les qualités nutritionnelles (🟢)")
 ```
 <details>
 <summary>Dérouler pour révéler les instructions</summary>
 ```
 
+Pour préparer cet exercice, créer les objets suivants:
 
-TO DO
+```python
+data = stats_nutritionnelles.copy()
+variable_nutritionnelle = 'energy-kcal_100g'
+coicop = "01.1.7.3.2"
+valeur_produit = 8
+```
 
+1. Utiliser la méthode [`loc`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.loc.html)
+pour ne conserver que les observations où `data['variable']` est égale à la valeur `variable_nutritionnelle`
+et où la variable `coicop` est égale à la valeur `coicop` (qu'on a fixé à `"01.1.7.3.2"`). A l'issue de ces
+filtres, nommer le dataframe obtenu `example_coicop`
+2. Utiliser [`np.where`](https://numpy.org/doc/stable/reference/generated/numpy.where.html) pour créer une 
+colonne stockant les couleurs de notre graphique. On utilisera le rouge (_red_) lorsque la variable quantile
+est égale à `valeur_produit` et du bleu (_royalblue_) sinon. Nommer cette variable `color`.
+3. Créer un diagramme en barre avec:
+        + sur l'axe des _x_ les quantiles (stockés dans la variable `quantile`)
+        + sur l'axe des _y_, la valeur à représenter (stockée dans la variable `value`)
+        + la couleur à partir de la variable `color`
+        + Les _labels_ : pour l'axe des _x_ ne rien mettre et pour l'axe des _y_ : _"Par portion de 100g"_
+        + Masquer la légende via l'argument `showlegend` de la méthode `update_layout` 
+4. Encapsuler ce code dans une fonction nommée `figure_infos_nutritionnelles` dont les arguments
+sont `data`, `variable_nutritionnelle = 'energy-kcal_100g'`, `coicop = "01.1.7.3.2"` et `valeur_produit = 8`.
 
 ```{=html}
 </details>
@@ -531,6 +907,8 @@ TO DO
 
 <!----- end 🟢 ----->
 :::
+
+
 
 
 ```{python}
@@ -569,11 +947,121 @@ def figure_infos_nutritionnelles(
 
 ```{python}
 from utils.construct_figures import figure_infos_nutritionnelles
-fig = figure_infos_nutritionnelles(stats_nutritionnelles).show()
+fig = figure_infos_nutritionnelles(stats_nutritionnelles)
 fig.update_layout(width=800, height=400)
 
 fig
 ```
+
+::: {.cell .markdown}
+<!----- boite ⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "⚫", title = "Modèle de figure pour les notes (⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Créer une fonction standardisée qui présente, sous forme de diagramme en barre,
+le nombre de produits dans une classe de produit donnée (identifiée par la COICOP)
+de chaque décile.
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end ⚫ ----->
+:::
+
+
+::: {.cell .markdown}
+<!----- boite 🔴 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔴", title = "Modèle de figure pour les notes (🔴)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Créer une fonction standardisée dont les arguments sont
+
+- Un jeu de données nommé `data`
+- Une caractéristique nutritionnelle nommée `variable_note` par défaut égale à `nutriscore_grade`
+- Une catégorie nommée `coicop`, par défaut égale à `01.1.7.3.2`
+- Une note pour le produit dans une variable nommée `note_produit` par défaut égal à `B`
+
+Cette fonction effectue les tâches suivantes:
+
+- Ne conserver, dans notre ensemble de valeurs agrégées, que celles relatives à la COICOP et
+à la caractéristique nutritionnelle qu'on recherche ;
+- Représenter sous forme de diagramme en barre les valeurs nutritionnelles pour chaque décile de la 
+distribution avec, en rouge, celle de notre produit (`valeur_produit`)
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔴 ----->
+:::
+
+::: {.cell .markdown}
+<!----- boite 🔵 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "🔵", title = "Modèle de figure pour les notes (🔵)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Pour préparer cet exercice, créer les objets suivants:
+
+```python
+data = stats_nutritionnelles.copy()
+variable_note = 'nutriscore_grade'
+coicop = "01.1.7.3.2"
+note_produit = "B"
+```
+
+1. Ne conserver que les observations où `data['variable']` est égale à la valeur `variable_note`
+et où la variable `coicop` est égale à la valeur `coicop`. A l'issue de ces
+filtres, nommer le dataframe obtenu `example_coicop`
+2. Créer une 
+colonne stockant les couleurs de notre graphique. On utilisera le rouge (_red_) lorsque la variable quantile
+est égale à `note_produit` et du bleu (_royalblue_) sinon. Nommer cette variable `color`.
+3. Créer un diagramme en barre avec:
+        + sur l'axe des _x_ les quantiles
+        + sur l'axe des _y_, la valeur à représenter
+        + la couleur à partir de la variable `color`
+        + Les _labels_ : pour l'axe des _x_ ne rien mettre et pour l'axe des _y_ : _"Note"_
+        + Masquer la légende
+4. Encapsuler ce code dans une fonction nommée `figure_infos_nutritionnelles` dont les arguments
+sont `data`, `variable_nutritionnelle = 'nutriscore_grade'`, `coicop = "01.1.7.3.2"` et `note_produit = "B"`.
+
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
 
 ::: {.cell .markdown}
 <!----- boite 🟢 ----->
@@ -583,15 +1071,36 @@ fig
 #| echo: false
 #| output: asis
 from utils_notebook import create_box_level
-create_box_level(color = "🟢", title = "Distribution des notes par catégorie de produit (🟢)")
+create_box_level(color = "🟢", title = "Modèle de figure pour les notes (🟢)")
 ```
 <details>
 <summary>Dérouler pour révéler les instructions</summary>
 ```
 
+Pour préparer cet exercice, créer les objets suivants:
 
-TO DO
+```python
+data = stats_nutritionnelles.copy()
+variable_note = 'nutriscore_grade'
+coicop = "01.1.7.3.2"
+note_produit = "B"
+```
 
+1. Utiliser la méthode [`loc`](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.loc.html)
+pour ne conserver que les observations où `data['variable']` est égale à la valeur `variable_note`
+et où la variable `coicop` est égale à la valeur `coicop` (qu'on a fixé à `"01.1.7.3.2"`). A l'issue de ces
+filtres, nommer le dataframe obtenu `example_coicop`
+2. Utiliser [`np.where`](https://numpy.org/doc/stable/reference/generated/numpy.where.html) pour créer une 
+colonne stockant les couleurs de notre graphique. On utilisera le rouge (_red_) lorsque la variable quantile
+est égale à `note_produit` et du bleu (_royalblue_) sinon. Nommer cette variable `color`.
+3. Créer un diagramme en barre avec:
+        + sur l'axe des _x_ les notes (stockés dans la variable `note`)
+        + sur l'axe des _y_, la valeur à représenter (stockée dans la variable `value`)
+        + la couleur à partir de la variable `color`
+        + Les _labels_ : pour l'axe des _x_ ne rien mettre et pour l'axe des _y_ : _"Note"_
+        + Masquer la légende via l'argument `showlegend` de la méthode `update_layout` 
+4. Encapsuler ce code dans une fonction nommée `figure_infos_nutritionnelles` dont les arguments
+sont `data`, `variable_nutritionnelle = 'nutriscore_grade'`, `coicop = "01.1.7.3.2"` et `valeur_produit = "B"`.
 
 ```{=html}
 </details>
@@ -645,3 +1154,4 @@ fig.update_layout(width=800, height=400)
 
 fig
 ```
+

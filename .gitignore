@@ -1,3 +1,4 @@
 *.csv.gz
 
 __pycache__/
+/.quarto/
