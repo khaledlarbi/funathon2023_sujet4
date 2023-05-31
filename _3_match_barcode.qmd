@@ -107,7 +107,6 @@ obj[0].data.decode()
 ```
 
 
-
 ```{python}
 #| echo: false
 from utils.detect_barcode import extract_ean
@@ -118,10 +117,30 @@ extract_ean(url_image)
 ## Association d'un code barre à un produit d'openfoodfacts
 
 
+Maintenant qu'on dispose d'un code-barre (le numéro EAN), 
+on va trouver le produit dans `OpenFoodFacts`
+à partir de ce code barre.
+
+Cependant, comme il peut arriver
+qu'un produit dispose d'informations incomplètes, 
+il peut être utile de faire non seulement de l'apparimeent
+exact (trouver le produit avec le même code EAN) mais aussi de
+l'appariement flou (trouver un produit avec un nom proche de celui qu'on
+veut). Ceci est un exercice pour les parcours 🔴 et ⚫, les autres
+voies pouvant prendre cette fonction comme donnée. 
+
+Voici l'EAN d'exemple
+
 ```{python}
 ean = "5000112602999"
 ```
 
+Pour avoir un outil performant, on propose d'utiliser à
+`DuckDB` pour lire et filtrer les données. Cela sera plus performant que 
+lire, à chaque fois que l'utilisateur de notre applicatoin _upload_ une image,
+un gros fichier (2 millions de ligne) pour n'en garder qu'une. 
+
+Voici la configuration à mettre en oeuvre:
 
 ```{python}
 import duckdb
@@ -134,10 +153,87 @@ con.execute("""
 
 from utils.import_yaml import import_yaml
 config = import_yaml("config.yaml")
-
-INPUT_OPENFOOD = f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/openfood.parquet"
 url_data = "https://projet-funathon.minio.lab.sspcloud.fr/2023/sujet4/diffusion/openfood.parquet"
+```
 
+
+::: {.cell .markdown}
+<!----- boite 🟢🔵 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "grey", title = "Lire les données avec `DuckDB` (🟢 et 🔵)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+
+Pour exécuter une requête SQL, on utilise la structure suivante avec `DuckDB`
+
+```python
+data_pandas_from_duckdb = con.sql(REQUETE).df()
+```
+
+La requête que nous proposons d'utiliser est à structurer à partir des éléments suivants :
+
+- Pour la clause `SELECT`, la liste des colonnes à utiliser est pré-formattée dans l'objet `liste_colonnes_sql`
+- Pour la clause `FROM`, l'instruction `read_parquet` peut être utilisée avec l'URL stocké dans `url_data`
+- Pour la clause WHERE, vous pouvez utiliser la syntaxe suivante pour normaliser les code-barres des deux côtés en retirant les 
+0 initiaux: `CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)`
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🟢🔵 ----->
+:::
+
+::: {.cell .markdown}
+<!----- boite 🔴 et ⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "grey", title = "Lire les données avec `DuckDB` (🔴 et ⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+
+La requête que nous proposons d'utiliser est à structurer à partir des éléments suivants :
+
+- Ne garder que les variables présentes dans `liste_colonnes_sql`
+- Lire les données directement depuis `url_data`
+- Filtrer les données pour ne garder que celle dans l'OpenFood avec notre code-barre
+
+Aide pour la voie 🔴
+
+Il faut normaliser les code-barres des deux côtés avant d'essayer
+de comparer. Cela se fait de la manière suivante: `CAST(ltrim({ean}) AS STRING)`
+A vous de mettre en oeuvre cela pour faire de la comparaison entre notre EAN et la
+variable `code` 
+
+
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔴 et ⚫ ----->
+:::
+
+
+```{python}
+#| classes: yellow-code
+#| label: get-openfood-sql
+#| output: false
+
+# Solution pour voie 🟡
 openfood_produit = con.sql(f"SELECT {liste_colonnes_sql} FROM read_parquet('{url_data}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)").df()
 ```
 
