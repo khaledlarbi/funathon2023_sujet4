@@ -4,6 +4,13 @@ Tout ce travail préliminaire nous permettra d'afficher sur notre application de
 propres à chaque catégorie.
 
 ```{python}
+from utils.import_yaml import import_yaml
+config = import_yaml("config.yaml")
+
+INPUT_OPENFOOD = f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/openfood.parquet"
+```
+
+```{python}
 info_nutritionnelles = [
     'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g',
     'carbohydrates_100g', 'sugars_100g',
@@ -17,11 +24,10 @@ liste_colonnes_sql = [f"\"{s}\"" for s in liste_colonnes]
 liste_colonnes_sql = ', '.join(liste_colonnes_sql)
 ```
 
-
 ```{python}
-info_nutritionnelles = openfood.filter(like = "_100g").columns.tolist()
-list_columns = ["code", "product_name"] + info_nutritionnelles
+ean = "5000112602999"
 ```
+
 
 ```{python}
 import duckdb
@@ -37,5 +43,27 @@ config = import_yaml("config.yaml")
 
 INPUT_OPENFOOD = f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/openfood.parquet"
 
-df = con.sql(f"SELECT {liste_colonnes_sql} FROM read_parquet('s3://{INPUT_OPENFOOD}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)").df()
+openfood_produit = con.sql(f"SELECT {liste_colonnes_sql} FROM read_parquet('s3://{INPUT_OPENFOOD}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)").df()
 ```
+
+```{python}
+product_name = openfood_produit["product_name"].iloc[0]
+```
+
+```{python}
+import pandas as pd
+
+out_textual = con.sql(f"select {liste_colonnes_sql} from read_parquet('s3://{INPUT_OPENFOOD}') WHERE jaro_winkler_similarity('{product_name}',product_name) > 0.9")
+out_textual = out_textual.df()
+
+out_textual_imputed = pd.concat(
+    [
+        openfood_produit.loc[:, ["code", "product_name", "coicop"]].reset_index(drop = True),
+        pd.DataFrame(out_textual.loc[:, info_nutritionnelles ].mean()).T
+    ], ignore_index=True, axis=1
+)
+out_textual_imputed.columns = ["code", "product_name", "coicop"] + info_nutritionnelles
+
+out_textual_imputed
+```
+
