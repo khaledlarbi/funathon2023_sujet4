@@ -242,6 +242,8 @@ product_name = openfood_produit["product_name"].iloc[0]
 ```
 
 ```{python}
+# Solution pour voie 🟡
+
 import pandas as pd
 
 def fuzzy_matching_product(product_name, con, url_data, liste_colonnes_sql, info_nutritionnelles):
@@ -251,13 +253,15 @@ def fuzzy_matching_product(product_name, con, url_data, liste_colonnes_sql, info
     out_textual_imputed = pd.concat(
         [
             openfood_produit.loc[:, ["code", "product_name", "coicop"]].reset_index(drop = True),
-            pd.DataFrame(out_textual.loc[:, info_nutritionnelles ].mean()).T
+            pd.DataFrame(out_textual.loc[:, info_nutritionnelles  ].mean()).T
         ], ignore_index=True, axis=1
     )
     out_textual_imputed.columns = ["code", "product_name", "coicop"] + info_nutritionnelles
     
     return out_textual_imputed
 ```
+
+## COICOP en API
 
 
 ```{python}
@@ -289,4 +293,11 @@ url_api = url_api.replace(" ", "%20")
 output_api_predicat = requests.get(url_api).json()
 coicop_found = output_api_predicat['coicop'][f"'{product_name}'"][0]['label']
 coicop_found
+```
+
+
+## Association à nos stats agrégées
+
+```{python}
+stats_notes = pd.read_parquet("https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/stats_notes_pandas.parquet")
 ```
