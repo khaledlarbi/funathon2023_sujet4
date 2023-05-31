@@ -3,6 +3,8 @@
 Tout ce travail préliminaire nous permettra d'afficher sur notre application des statistiques
 propres à chaque catégorie.
 
+## Travail préliminaire
+
 ```{python}
 from utils.import_yaml import import_yaml
 config = import_yaml("config.yaml")
@@ -24,6 +26,98 @@ liste_colonnes_sql = [f"\"{s}\"" for s in liste_colonnes]
 liste_colonnes_sql = ', '.join(liste_colonnes_sql)
 ```
 
+## Détection de code barre
+
+La première brique de notre application consiste à repérer un produit par le scan du code-barre. 
+Nous allons partir pour le moment d'un produit d'exemple, ci-dessous: 
+
+![](https://images.openfoodfacts.org/images/products/500/011/260/2791/front_fr.4.400.jpg)
+
+```{python}
+url_image = "https://images.openfoodfacts.org/images/products/500/011/260/2791/front_fr.4.400.jpg"
+```
+
+Dans le cadre de notre application, on permettra aux utilisateurs d'_uploader_ 
+la photo d'un produit, ce sera plus _fun_.
+En attendant, partir d'un produit standardisé
+permet déjà de mettre en oeuvre la logique à ré-appliquer plus tard. 
+
+Pour se simplifier la vie, le plus simple pour repérer un code-barre est d'utiliser
+le _package_ [`pyzbar`](https://pypi.org/project/pyzbar/).
+Pour transformer une image en
+matrice `Numpy` (l'objet attendu par [`pyzbar`](https://pypi.org/project/pyzbar/)),
+on peut utiliser le module `skimage` de la manière suivante:
+
+```{python}
+from skimage import io
+io.imread(url_image)
+```
+
+::: {.cell .markdown}
+<!----- boite 🟢🔵🔴 et ⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+from utils_notebook import create_box_level
+create_box_level(color = "grey", title = "Extraire le code-barre à partir d'une image (🟢🔵🔴 et ⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+1. Après avoir importé l'image via `io.imread`, utiliser `pyzbar.decode`
+pour extraire les informations voulues, notamment le code-barre
+2. Si vous avez nommé l'objet généré, vérifier le code-barre avec
+`obj[0].data.decode()`
+3. A partir de cela, créer une fonction `extract_ean` pour décoder l'image
+(en retournant l'objet généré par `pyzbar`)
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🟢🔵🔴 et ⚫ ----->
+:::
+
+```{python}
+#| classes: yellow-code
+#| label: get-openfood-parquet
+#| output: false
+#| eval: false
+
+# Solution pour voie 🟡
+def extract_ean(url, verbose=True):
+    img = io.imread(url)
+    decoded_objects = pyzbar.decode(img)
+    if verbose is True:
+        for obj in decoded_objects:
+            # draw the barcode
+            print("detected barcode:", obj)
+            # print barcode type & data
+            print("Type:", obj.type)
+            print("Data:", obj.data)
+    return decoded_objects
+
+obj = extract_ean(url_image)
+
+obj[0].data.decode()
+```
+
+
+
+```{python}
+#| echo: false
+from utils.detect_barcode import extract_ean
+extract_ean(url_image)
+```
+
+
+## Association d'un code barre à un produit d'openfoodfacts
+
+
 ```{python}
 ean = "5000112602999"
 ```
@@ -42,8 +136,9 @@ from utils.import_yaml import import_yaml
 config = import_yaml("config.yaml")
 
 INPUT_OPENFOOD = f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/openfood.parquet"
+url_data = "https://projet-funathon.minio.lab.sspcloud.fr/2023/sujet4/diffusion/openfood.parquet"
 
-openfood_produit = con.sql(f"SELECT {liste_colonnes_sql} FROM read_parquet('s3://{INPUT_OPENFOOD}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)").df()
+openfood_produit = con.sql(f"SELECT {liste_colonnes_sql} FROM read_parquet('{url_data}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)").df()
 ```
 
 ```{python}
@@ -53,17 +148,49 @@ product_name = openfood_produit["product_name"].iloc[0]
 ```{python}
 import pandas as pd
 
-out_textual = con.sql(f"select {liste_colonnes_sql} from read_parquet('s3://{INPUT_OPENFOOD}') WHERE jaro_winkler_similarity('{product_name}',product_name) > 0.9")
-out_textual = out_textual.df()
+def fuzzy_matching_product(product_name, con, url_data, liste_colonnes_sql, info_nutritionnelles):
+    out_textual = con.sql(f"SELECT {liste_colonnes_sql} from read_parquet('{url_data}') WHERE jaro_winkler_similarity('{product_name}',product_name) > 0.8 AND \"energy-kcal_100g\" IS NOT NULL")
+    out_textual = out_textual.df()
 
-out_textual_imputed = pd.concat(
-    [
-        openfood_produit.loc[:, ["code", "product_name", "coicop"]].reset_index(drop = True),
-        pd.DataFrame(out_textual.loc[:, info_nutritionnelles ].mean()).T
-    ], ignore_index=True, axis=1
-)
-out_textual_imputed.columns = ["code", "product_name", "coicop"] + info_nutritionnelles
-
-out_textual_imputed
+    out_textual_imputed = pd.concat(
+        [
+            openfood_produit.loc[:, ["code", "product_name", "coicop"]].reset_index(drop = True),
+            pd.DataFrame(out_textual.loc[:, info_nutritionnelles ].mean()).T
+        ], ignore_index=True, axis=1
+    )
+    out_textual_imputed.columns = ["code", "product_name", "coicop"] + info_nutritionnelles
+    
+    return out_textual_imputed
 ```
 
+
+```{python}
+from utils.download_pb import import_coicop_labels
+coicop = import_coicop_labels(
+    "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls"
+)
+```
+
+
+```{python}
+if openfood_produit['energy-kcal_100g'].isnull().iloc[0]:
+    openfood_produit = fuzzy_matching_product(product_name, con, url_data, liste_colonnes_sql, info_nutritionnelles)
+    openfood_produit = openfood_produit.merge(coicop, left_on = "coicop", right_on = "Code")
+```
+
+```{python}
+openfood_produit
+```
+
+```{python}
+#| eval: false
+import requests
+
+url_api = f"https://api.lab.sspcloud.fr/predicat/label?k=1&q=%27{product_name}%27"
+url_api = url_api.replace(" ", "%20")
+
+
+output_api_predicat = requests.get(url_api).json()
+coicop_found = output_api_predicat['coicop'][f"'{product_name}'"][0]['label']
+coicop_found
+```

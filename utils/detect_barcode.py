@@ -1,9 +1,10 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 import cv2
-from pyzbar import pyzbar
 from skimage import io
-
+from pyzbar import pyzbar
+from pyzbar.pyzbar import decode
 
 # url = "https://barcode-list.com/barcodeImage.php?barcode=5000112602999"
 # url = 'barcode4.png'
@@ -35,8 +36,7 @@ def extract_ean(url, verbose=True):
             print("Data:", obj.data)
     return decoded_objects
 
-from pyzbar.pyzbar import decode
-import numpy as np
+
 
 def visualise_barcode(url):
     img = io.imread(url)

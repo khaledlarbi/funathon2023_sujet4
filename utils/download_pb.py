@@ -4,7 +4,7 @@ Some useful functions
 import os
 import requests
 from tqdm import tqdm
-
+import pandas as pd
 
 def download_pb(
     url: str, fname: str, total: int = None, force: bool = True, verify: bool = True
@@ -39,3 +39,10 @@ def download_pb(
         for data in resp.iter_content(chunk_size=1024):
             size = file.write(data)
             obj.update(size)
+
+
+def import_coicop_labels(url: str) -> pd.DataFrame:
+    coicop = pd.read_excel(url, skiprows=1)
+    coicop['Code'] = coicop['Code'].str.replace("'", "")
+    coicop = coicop.rename({"Libellé": "category"}, axis = "columns")
+    return coicop

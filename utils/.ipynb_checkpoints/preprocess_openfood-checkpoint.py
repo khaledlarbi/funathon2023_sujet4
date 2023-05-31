@@ -84,3 +84,18 @@ def model_predict_coicop(data, model, product_column: str = "preprocessed_labels
 
     data[output_column] = predictions[output_column].str.replace(r'__label__', '')
     return data
+
+
+def fuzzy_matching_product(product_name, url_data, liste_colonnes_sql, info_nutritionnelles):
+    out_textual = con.sql(f"SELECT {liste_colonnes_sql} from read_parquet('{url_data}') WHERE jaro_winkler_similarity('{product_name}',product_name) > 0.8 AND \"energy-kcal_100g\" IS NOT NULL")
+    out_textual = out_textual.df()
+
+    out_textual_imputed = pd.concat(
+        [
+            openfood_produit.loc[:, ["code", "product_name", "coicop"]].reset_index(drop = True),
+            pd.DataFrame(out_textual.loc[:, info_nutritionnelles ].mean()).T
+        ], ignore_index=True, axis=1
+    )
+    out_textual_imputed.columns = ["code", "product_name", "coicop"] + info_nutritionnelles
+    
+    return out_textual_imputed
