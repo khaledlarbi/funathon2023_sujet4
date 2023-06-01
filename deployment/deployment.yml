@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: funathon2023-sujet4
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: funathon2023-sujet4
+  template:
+    metadata:
+      labels:
+        app: funathon2023-sujet4
+    spec:
+      containers:
+        - name: app
+          image: inseefrlab/funathon2023-sujet4:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"

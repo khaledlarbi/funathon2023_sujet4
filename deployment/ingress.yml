@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: funathon2023-sujet4-ingress
+spec:
+  tls:
+    - hosts:
+        - funathon2023-sujet4.lab.sspcloud.fr
+  rules:
+    - host: funathon2023-sujet4.lab.sspcloud.fr
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: funathon2023-sujet4-service
+                port:
+                  number: 80
