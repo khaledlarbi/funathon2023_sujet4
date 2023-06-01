@@ -36,8 +36,10 @@ def figure_infos_notes(
     coicop = "01.1.7.3.2", note_produit = "B"
 ):
     example_coicop = data.loc[data['variable'] == variable_note]
-    example_coicop = example_coicop.loc[example_coicop['coicop']==coicop]
-    example_coicop['color'] = np.where(example_coicop['note'] == note_produit, "red", "royalblue")
+    example_coicop = example_coicop.loc[example_coicop['coicop'] == coicop]
+    example_coicop['color'] = np.where(
+        example_coicop['note'] == note_produit, "red", "royalblue"
+    )
 
     fig = px.bar(
         example_coicop,

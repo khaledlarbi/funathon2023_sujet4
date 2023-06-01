@@ -87,6 +87,7 @@ pour extraire les informations voulues, notamment le code-barre
 #| label: get-openfood-parquet
 #| output: false
 #| eval: false
+from pyzbar import pyzbar
 
 # Solution pour voie 🟡
 def extract_ean(url, verbose=True):
@@ -229,39 +230,32 @@ variable `code`
 
 
 ```{python}
-#| classes: yellow-code
-#| label: get-openfood-sql
-#| output: false
-
-# Solution pour voie 🟡
-openfood_produit = con.sql(f"SELECT {liste_colonnes_sql} FROM read_parquet('{url_data}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)").df()
-```
-
-```{python}
-product_name = openfood_produit["product_name"].iloc[0]
-```
-
-```{python}
 # Solution pour voie 🟡
 
+import numpy as np
 import pandas as pd
+from utils.preprocess_openfood import clean_note
 
-def fuzzy_matching_product(product_name, con, url_data, liste_colonnes_sql, info_nutritionnelles):
+def fuzzy_matching_product(openfood_produit, product_name, con, url_data, liste_colonnes_sql, info_nutritionnelles, indices_synthetiques):
     out_textual = con.sql(f"SELECT {liste_colonnes_sql} from read_parquet('{url_data}') WHERE jaro_winkler_similarity('{product_name}',product_name) > 0.8 AND \"energy-kcal_100g\" IS NOT NULL")
     out_textual = out_textual.df()
+
+    out_textual.loc[:, indices_synthetiques] = pd.concat(
+        [clean_note(out_textual, s, "wide") for s in indices_synthetiques],
+        axis = 1
+    )
 
     out_textual_imputed = pd.concat(
         [
             openfood_produit.loc[:, ["code", "product_name", "coicop"]].reset_index(drop = True),
-            pd.DataFrame(out_textual.loc[:, info_nutritionnelles  ].mean()).T
+            pd.DataFrame(out_textual.loc[:, info_nutritionnelles  ].mean()).T,
+            pd.DataFrame(out_textual.loc[:, indices_synthetiques].replace('',np.nan).mode())
         ], ignore_index=True, axis=1
     )
-    out_textual_imputed.columns = ["code", "product_name", "coicop"] + info_nutritionnelles
+    out_textual_imputed.columns = ["code", "product_name", "coicop"] + info_nutritionnelles + indices_synthetiques
     
     return out_textual_imputed
 ```
-
-## COICOP en API
 
 
 ```{python}
@@ -271,19 +265,75 @@ coicop = import_coicop_labels(
 )
 ```
 
-
 ```{python}
-if openfood_produit['energy-kcal_100g'].isnull().iloc[0]:
-    openfood_produit = fuzzy_matching_product(product_name, con, url_data, liste_colonnes_sql, info_nutritionnelles)
-    openfood_produit = openfood_produit.merge(coicop, left_on = "coicop", right_on = "Code")
+# Solution pour voie 🟡
+
+def find_product_openfood(con, liste_colonnes_sql, url_data, ean, coicop):
+    openfood_produit = con.sql(f"SELECT {liste_colonnes_sql} FROM read_parquet('{url_data}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)").df()
+    
+    product_name = openfood_produit["product_name"].iloc[0]
+    
+    if openfood_produit['energy-kcal_100g'].isnull().iloc[0]:
+        openfood_produit = fuzzy_matching_product(openfood_produit, product_name, con, url_data, liste_colonnes_sql, info_nutritionnelles, indices_synthetiques)
+        openfood_produit = openfood_produit.merge(coicop, left_on = "coicop", right_on = "Code")
+
+    return openfood_produit
 ```
 
 ```{python}
-openfood_produit
+openfood_produit = find_product_openfood(con, liste_colonnes_sql, url_data, ean, coicop)
 ```
+
+## Production automatique d'un graphique
+
+```{python}
+stats_notes = pd.read_parquet("https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/stats_notes_pandas.parquet")
+```
+
+```{python}
+from utils.construct_figures import figure_infos_notes
+
+variable = 'nutriscore_grade'
+
+def plot_product_info(
+    data, variable,
+    stats_notes):
+
+    fig = figure_infos_notes(
+        stats_notes,
+        variable_note = variable,
+        coicop = data['coicop'].iloc[0],
+        note_produit = data[variable].iloc[0]
+    )
+
+    return fig
+```
+
+```{python}
+#| output: false
+fig = plot_product_info(openfood_produit, variable, stats_notes)
+fig.update_layout(width=800, height=400)
+fig
+```
+
+
+```{python}
+#| output: false
+fig = plot_product_info(openfood_produit, "ecoscore_grade", stats_notes)
+fig.update_layout(width=800, height=400)
+fig
+```
+
+
+## COICOP en API
+
+
+
+
 
 ```{python}
 #| eval: false
+#| echo: false
 import requests
 
 url_api = f"https://api.lab.sspcloud.fr/predicat/label?k=1&q=%27{product_name}%27"
@@ -295,9 +345,3 @@ coicop_found = output_api_predicat['coicop'][f"'{product_name}'"][0]['label']
 coicop_found
 ```
 
-
-## Association à nos stats agrégées
-
-```{python}
-stats_notes = pd.read_parquet("https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/stats_notes_pandas.parquet")
-```
