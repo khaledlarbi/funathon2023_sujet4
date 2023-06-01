@@ -1,5 +1,7 @@
 FROM inseefrlab/onyxia-python-minimal:py3.10.9
 
+USER root
+
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
