@@ -7,11 +7,6 @@ import s3fs
 
 from detect_barcode import extract_ean, visualise_barcode
 
-from utils.import_yaml import import_yaml
-config = import_yaml("config.yaml")
-
-INPUT_OPENFOOD = f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/openfood.parquet"
-
 info_nutritionnelles = [
     'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g',
     'carbohydrates_100g', 'sugars_100g',
@@ -37,34 +32,15 @@ else:
 # partie 2: retrouver le produit depuis openfood
 
 
-con = duckdb.connect(database=':memory:')
-con.execute("""
-    INSTALL httpfs;
-    LOAD httpfs;
-    SET s3_endpoint='minio.lab.sspcloud.fr'
-""")
 
 
 URL_PARQUET = "https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/openfood.parquet"
 
-info_nutritionnelles = [
-    'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g',
-    'carbohydrates_100g', 'sugars_100g',
-    'proteins_100g', 'salt_100g']
-indices_synthetiques = [
-    "nutriscore_grade", "ecoscore_grade", "nova_group"
-]
-principales_infos = ['product_name', 'code', 'preprocessed_labels', 'coicop', "url", "image_url"]
-liste_colonnes = principales_infos + indices_synthetiques + info_nutritionnelles
-liste_colonnes_sql = [f"\"{s}\"" for s in liste_colonnes]
-liste_colonnes_sql = ', '.join(liste_colonnes_sql)
 
 @st.cache_data
 def load_data(ean):
-    openfood_data = con.sql(
-        f"SELECT {liste_colonnes_sql} FROM read_parquet('s3://{INPUT_OPENFOOD}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)"
-        ).df()
-    return openfood_data
+    openfood_data = find_product_openfood(ean)
+    return openfood_data.df()
 
 if input_url is not None:
     subset = load_data(ean)
@@ -78,6 +54,6 @@ st.image(subset["image_url"].iloc[0])
 
 
 
-subset2 = subset.loc[:, ['code', 'product_name', 'coicop'] + info_nutritionnelles]
+subset2 = subset.loc[:, ['code', 'product_name', 'category'] + info_nutritionnelles]
 st.dataframe(subset2)
 

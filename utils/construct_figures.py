@@ -63,3 +63,18 @@ def figure_infos_notes(
     )
 
     return fig
+
+
+def plot_product_info(
+    data, variable,
+    stats_notes):
+
+    fig = figure_infos_notes(
+        stats_notes,
+        variable_note = variable,
+        coicop = data['coicop'].iloc[0],
+        note_produit = data[variable].iloc[0]
+    )
+
+    return fig
+
