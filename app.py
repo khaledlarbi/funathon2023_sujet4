@@ -23,6 +23,10 @@ def label_grade_formatter(s):
     return s.split("_", maxsplit = 1)[0].capitalize()
 
 
+def local_css(file_name):
+    with open(file_name) as f:
+        st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
+local_css("style.css")
 
 
 with st.sidebar:
@@ -77,7 +81,11 @@ else:
 st.write('Consulter ce produit sur le site openfoodfacts:', subset["url"].iloc[0])
 st.image(subset["image_url"].iloc[0])
 
-st.dataframe(subset)
+st.dataframe(subset.loc[:, ~subset.columns.str.contains("url")])
+
+t = f"<div>Statistiques parmi les <span class='highlight blue'>{subset['category'].iloc[0]}<span class='bold'>COICOP</span>"
+
+st.markdown(t, unsafe_allow_html=True)
 
 
 for var in options:
