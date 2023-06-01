@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from utils.download_pb import import_coicop_labels
 
 info_nutritionnelles = [
     'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g',
@@ -22,7 +23,7 @@ con.execute("""
 """)
 
 url_data = "https://projet-funathon.minio.lab.sspcloud.fr/2023/sujet4/diffusion/openfood.parquet"
-
+coicop = import_coicop_labels(url = "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls")
 
 def fuzzy_matching_product(openfood_produit, product_name, con, url_data):
     out_textual = con.sql(
@@ -63,6 +64,10 @@ def find_product_openfood(ean):
             [clean_note(openfood_produit, s, "wide") for s in indices_synthetiques],
             axis = 1
         )        
+
+    openfood_produit = openfood_produit.merge(
+        coicop, left_on = "coicop", right_on = "Code"
+    )
 
     return openfood_produit
 
