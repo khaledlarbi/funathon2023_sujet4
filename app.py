@@ -4,6 +4,8 @@ import duckdb
 import requests
 import pandas as pd
 import s3fs
+import numpy as np
+from PIL import Image
 
 from utils.detect_barcode import extract_ean, visualise_barcode
 from utils.pipeline import find_product_openfood
@@ -30,7 +32,8 @@ with st.sidebar:
     if input_method == 'Photo enregistrée':
         input_url = st.file_uploader("Uploaded une photo:", accept_multiple_files=False)
     else:
-        input_url = st.camera_input("Take a picture")
+        picture = st.camera_input("Take a picture")
+        input_url = picture
     if input_url is not None:
         img = visualise_barcode(input_url)
         cv2.imwrite('barcode_opencv.jpg', img)
