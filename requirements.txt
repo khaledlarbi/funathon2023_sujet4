@@ -3,6 +3,7 @@ opencv-python
 pyzbar
 xlrd
 matplotlib
+plotly
 duckdb
 pandas
 pyarrow

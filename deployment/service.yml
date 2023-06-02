@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: funathon2023-sujet4-service
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+  selector:
+    app: funathon2023-sujet4
