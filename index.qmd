@@ -1,5 +1,5 @@
 ---
-title: "Un Yuka avec Python"
+title: "Mon Yuka 🥕 avec Python 🐍"
 execute:
   cache: true
   keep-ipynb: true
@@ -10,7 +10,14 @@ format:
 ---
 
 
-Ce projet, mené dans le cadre du funathon (hackathon non compétitif) organisé par l'Insee en 2023
+Ce notebook vise à présenter pas à pas comment créer une application interactive
+avec `Streamlit` reproduisant celle proposée sur [myyuka.lab.sspcloud.fr](https://myyuka.lab.sspcloud.fr/).
+
+Cet exercice est proposé dans le cadre du `Funathon` (hackathon non compétitif)
+organisé en 2023 par l'Insee et le Ministère de l'Agriculture sur le thème _"Du champ à l'assiette"_. 
+Les autres sujets sont disponibles
+sur le [`Github InseeFrLab`](https://github.com/InseeFrLab/funathon2023). 
+
 
 ## Objectif et approche pédagogique
 
@@ -30,7 +37,7 @@ soit réalisable. Elles sont balisées de la manière suivante:
 | 🟢 | Des instructions détaillées sur la manière de procéder sont proposées | Connaître quelques manipulations avec `Pandas` | Apprendre à utiliser certains _packages_ avec un projet guidé, se familiariser avec les projets `Python` plus conséquents que les _notebooks_ `Jupyter` |
 | 🔵 | Instructions moins détaillées | Capacité à manipuler des données avec `Pandas` | Apprendre à modulariser du code pour faciliter sa réutilisation dans une application, découvrir la récupation de données via des API |
 | 🔴 | Peu d'instructions | Expérience en développement de code `Python` | Découvrir la création d'application ou se familiariser avec l'écosystème `DuckDB` |
-| ⚫ | Autonomie | Bonne maîtrise de `Python` et de la ligne de commande ̀ Linux` | S'initier au déploiement d'une application ou à l'ingénieurie de données |
+| ⚫ | Autonomie | Bonne maîtrise de `Python` et de la ligne de commande ̀`Linux` | S'initier au déploiement d'une application ou à l'ingénieurie de données |
 
 Le parcours vers la mise en oeuvre d'une application fonctionnelle se fait par étapes, en séquençant le projet
 pour permettre d'avoir un projet lisible, reproductible et modulaire. 
@@ -52,6 +59,7 @@ Les consignes sont encapsulées dans des boites dédiées, afin d'être séparé
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🟢", title = "Exemple (🟢)")
 ```
@@ -81,6 +89,7 @@ utilisera une délimitation grise :
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "grey", title = "Exemple (🔵,🔴,⚫)")
 ```
@@ -99,7 +108,7 @@ Afficher le texte _"Toto"_
 :::
 
 
-La solution associée, visible pour les personnes sur la voie 🟡 sera:
+La solution associée, visible pour les personnes sur la voie 🟡, sera:
 
 ```{python}
 # Solution pour voie 🟡
@@ -120,10 +129,10 @@ Le projet est séquencé de la manière suivante:
 | Mettre en production cette application | Déployer grâce à des serveurs standardisés une application `Streamlit` (🔴,⚫) ou proposer une version sans serveur (⚫ voulant se familiariser à `Observable`) |
 
 
-Le développement à proprement parler de l'application est donc assez tardif car un certain nombre d'étapes préalables sont nécessaires pour ne pas avoir une application monolithique (ce qui est une bonne pratique). Si vous n'êtes intéressés que par développer une application `Streamlit`, vous pouvez directement passer aux étapes concernées. 
+Le développement à proprement parler de l'application est donc assez tardif car un certain nombre d'étapes préalables sont nécessaires pour ne pas avoir une application monolithique (ce qui est une bonne pratique). Si vous n'êtes intéressés que par développer une application `Streamlit`, vous pouvez directement passer aux étapes concernées (à partir de la partie 3️). 
 
-La première étape (_Récupération et nettoyage de la base `OpenFoodFacts`_) peut être assez chronophage. Cela est assez représentatif des projets de _data science_ où la majorité du temps est consacrée
-à la structuration et la manipulation de données. La deuxième étape (_"Faire des statistiques agrégées par catégories"_) est la moins centrale de ce sujet: si vous manquez de temps vous pouvez la passer
+La première étape (1️⃣ _Récupération et nettoyage de la base `OpenFoodFacts`_) peut être assez chronophage. Cela est assez représentatif des projets de _data science_ où la majorité du temps est consacrée
+à la structuration et la manipulation de données. La deuxième étape (2️ _"Faire des statistiques agrégées par catégories"_) est la moins centrale de ce sujet: si vous manquez de temps vous pouvez la passer
 et utiliser directement les morceaux de code mis à disposition. 
 
 
@@ -166,4 +175,3 @@ officiel de l'Insee.
 
 
 {{< include _1_recup.qmd >}}
-{{< include _2_statistics.qmd >}}

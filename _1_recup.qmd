@@ -1,6 +1,6 @@
-## 1. Récupération des données `OpenFoodFacts`
+# 1️⃣ Récupération des données `OpenFoodFacts`
 
-### Préliminaire (🟡,🟢,🔵,🔴,⚫)
+## 1.1. Préliminaire (🟡,🟢,🔵,🔴,⚫)
 
 Comme nous allons utiliser fréquemment certains paramètres,
 une bonne pratique consiste à les stocker dans un fichier
@@ -22,7 +22,7 @@ URL_COICOP_LABEL: "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop20
 changer la variable `BUCKET` pour mettre votre nom d'utilisateur sur le `SSPCloud`.
 
 Nous allons lire ce fichier avec le package adapté pour transformer ces
-instructions en variables `Python` (stockées dans un dictionnaire)
+instructions en variables `Python` (stockées dans un dictionnaire)!,
 
 
 
@@ -33,6 +33,7 @@ instructions en variables `Python` (stockées dans un dictionnaire)
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🟢", title = "Utiliser un fichier YAML (🟢)")
 ```
@@ -58,6 +59,7 @@ importer les variables dans un objet `Python` nommé `config`
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🔵", title = "Utiliser un fichier YAML (🔵)")
 ```
@@ -82,6 +84,7 @@ Utiliser le package `PyYAML` pour importer les éléments présents dans `config
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🔴", title = "Utiliser un fichier YAML (🔴,⚫)")
 ```
@@ -143,7 +146,7 @@ config = import_yaml("config.yaml")
 ```
 
 
-### Télécharger et nettoyer la base `OpenFoodFacts` (🟡,🟢,🔵,🔴,⚫)
+## 1.2. Télécharger et nettoyer la base `OpenFoodFacts` (🟡,🟢,🔵,🔴,⚫)
 
 Un export quotidien de la
 base de données `OpenFoodFacts` est fourni au format `CSV`. L'URL est le suivant:
@@ -169,6 +172,7 @@ sur le disque local ;
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🟢", title = "Télécharger et importer OpenFoodFacts (🟢)")
 ```
@@ -212,6 +216,7 @@ Vous pouvez vous inspirer de réponses [ici](https://stackoverflow.com/questions
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🔵", title = "Télécharger et importer OpenFoodFacts (🔵)")
 ```
@@ -254,6 +259,7 @@ vous pouvez vous inspirer de la fonction `download_pb` du package [`cartiflette`
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "grey", title = "Télécharger et importer OpenFoodFacts (🔴,⚫)")
 ```
@@ -318,13 +324,45 @@ else:
     openfood.to_parquet("openfood.parquet")
 ```
 
+
+L'objectif de l'application est de proposer pour un produit donné quelques
+statistiques descriptives. On propose de se focaliser sur trois 
+scores :
+
+- Le [__nutriscore__](https://www.santepubliquefrance.fr/determinants-de-sante/nutrition-et-activite-physique/articles/nutri-score) ;
+- Le [__score Nova__](https://fr.openfoodfacts.org/nova) indiquant le degré de transformation d'un produit ;
+- L'[__écoscore__](https://docs.score-environnemental.com/), une mesure de l'empreinte carbone d'un produit ;
+
+Ces scores ne sont pas systématiquement disponibles sur `OpenFoodFacts`
+mais une part croissante des données présente ces informations (directement
+renseignées ou imputées). 
+
 ```{python}
-#| echo: false
-#| output: true
-openfood.loc[:, ['code', 'product_name', 'energy-kcal_100g', 'nutriscore_grade']].sample(5, random_state = 12345)
+indices_synthetiques = ['nutriscore_grade', 'nova_group', 'ecoscore_grade']
 ```
 
-### Classification automatique dans une nomenclature de produits  (🟡,🟢,🔵,🔴,⚫)
+Le bloc de code ci-dessous propose d'harmoniser le format de ces scores
+pour faciliter la représentation graphique ultérieure.
+
+Comme il ne s'agit
+pas du coeur du sujet, il est donné directement à tous les parcours. 
+Le code source de cette fonction est disponible dans
+le module `utils.pipeline`:
+
+```{python}
+import pandas as pd
+from utils.pipeline import clean_note
+
+indices_synthetiques = ['nutriscore_grade', 'nova_group', 'ecoscore_grade']
+
+openfood.loc[:, indices_synthetiques] = pd.concat(
+        [clean_note(openfood, s, "wide") for s in indices_synthetiques],
+        axis = 1
+    )
+```
+
+
+## 1.3. Classification automatique dans une nomenclature de produits  (🟡,🟢,🔵,🔴,⚫)
 
 Pour proposer sur notre application quelques statistiques pertinentes sur
 le produit, nous allons associer chaque ligne d'`OpenFoodFacts` 
@@ -332,16 +370,22 @@ le produit, nous allons associer chaque ligne d'`OpenFoodFacts`
 à des produits similaires. 
 
 Nous allons ainsi utiliser le nom du produit pour inférer le type de bien
-dont il s'agit. Pour cela, dans les parcours 🟡,🟢 et 🔵, 
+dont il s'agit.
+
+Pour cela, dans les parcours 🟡,🟢 et 🔵, 
 nous allons d'utiliser un classifieur expérimental
 proposé sur [`Github InseeFrLab/predicat`](https://github.com/InseeFrLab/predicat)
 qui a été entrainé sur cette tâche sur un grand volume de
-données (non spécifiquement alimentaires). Pour les parcours 🔴 et ⚫, nous 
-proposons d'entraîner un classifieur en utilisant la catégorisation des données
+données (non spécifiquement alimentaires). 
+
+Pour les parcours 🔴 et ⚫, nous proposons également d'utiliser ce classifieur. 
+Néanmoins, une voie bis est possible pour
+entraîner soi-même un classifieur en utilisant la catégorisation des données
 disponible directement dans `OpenFoodFacts`. Il est proposé d'utiliser `Fasttext`
 (une librairie spécialisée open-source, développée par `Meta` il y a quelques années) dans
 le cadre de la voie 🔴. Les personnes suivant la voie ⚫ sont libres d'utiliser
-n'importe quel _framework_ de classification. 
+n'importe quel _framework_ de classification, par exemple un modèle disponible
+sur [HuggingFace](https://huggingface.co/). 
 
 
 ::: {.cell .markdown}
@@ -351,6 +395,7 @@ n'importe quel _framework_ de classification.
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🟢", title = "Nettoyer les données textuelles (🟢)")
 ```
@@ -364,7 +409,13 @@ create_box_level(color = "🟢", title = "Nettoyer les données textuelles (🟢
 4. Observer les cas où il y a eu des changements, par exemple de la manière suivante
 
 ```python
-openfood.loc[:, ["product_name", "preprocessed_labels"]].dropna().loc[openfood["product_name"].str.upper() != openfood["preprocessed_labels"]]
+(openfood
+    .dropna(subset = ["product_name", "preprocessed_labels"])
+    .loc[
+        openfood["product_name"].str.upper() != openfood["preprocessed_labels"],
+        ["product_name", "preprocessed_labels"]
+    ]
+)
 ```
 
 ```{=html}
@@ -383,6 +434,7 @@ openfood.loc[:, ["product_name", "preprocessed_labels"]].dropna().loc[openfood["
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🔵", title = "Nettoyer les données textuelles (🔵)")
 ```
@@ -410,6 +462,7 @@ create_box_level(color = "🔵", title = "Nettoyer les données textuelles (🔵
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🔴", title = "Nettoyer les données textuelles (🔴)")
 ```
@@ -436,6 +489,7 @@ create_box_level(color = "🔴", title = "Nettoyer les données textuelles (🔴
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "⚫", title = "Nettoyer les données textuelles (⚫)")
 ```
@@ -503,20 +557,30 @@ Cette dernière s'utilise de la manière suivante:
 ```{python}
 from utils.utils_ddc import replace_values_ean
 from utils.preprocess_openfood import clean_column_dataset
-openfood = clean_column_dataset(openfood,replace_values_ean, "product_name", "preprocessed_labels")
+openfood = clean_column_dataset(
+        openfood, replace_values_ean,
+        "product_name", "preprocessed_labels"
+)
 ```
 
 Voici quelques cas où notre nettoyage de données a modifié le nom du produit :
 
 ```{python}
-openfood.loc[:, ["product_name", "preprocessed_labels"]].dropna().loc[openfood["product_name"].str.upper() != openfood["preprocessed_labels"]]
+(openfood
+    .dropna(subset = ["product_name", "preprocessed_labels"])
+    .loc[
+        openfood["product_name"].str.upper() != openfood["preprocessed_labels"],
+        ["product_name", "preprocessed_labels"]
+    ]
+)
 ```
 
 On peut remarquer que pour aller plus loin et améliorer la normalisation des champs,
 il serait pertinent d'appliquer un certain nombre de nettoyages supplémentaires, comme
 le retrait des mots de liaison (_stop words_). Des exemples de ce type de nettoyages
 sont présents dans le [cours de `Python` de l'ENSAE](https://pythonds.linogaliana.fr/nlpintro/).
-Cela est laissé comme exercice aux voies 🔴 et ⚫
+
+Cela est laissé comme exercice aux voies 🔴 et ⚫.
 
 
 ::: {.cell .markdown}
@@ -526,6 +590,7 @@ Cela est laissé comme exercice aux voies 🔴 et ⚫
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "grey", title = "Normaliser les champs textuels (🔴,⚫)")
 ```
@@ -533,7 +598,7 @@ create_box_level(color = "grey", title = "Normaliser les champs textuels (🔴,�
 <summary>Dérouler pour révéler les instructions</summary>
 ```
 
-Utiliser `nltk` ou `SpaCy` (solution préférable) pour ajouter des nettoyages
+Utiliser `NLTK` ou `SpaCy` (solution préférable) pour ajouter des nettoyages
 de champs textuels
 
 ```{=html}
@@ -546,7 +611,7 @@ de champs textuels
 
 On peut maintenant se tourner vers la classification à proprement parler. 
 Pour celle-ci, on propose d'utiliser un modèle qui a été entrainé
-avec [`Fasttext`](https://fasttext.cc/). Voici comment récupérer le modèle
+avec la librairie [`Fasttext`](https://fasttext.cc/). Voici comment récupérer le modèle
 et le tester sur un exemple très basique:
 
 ```{python}
@@ -555,7 +620,10 @@ import os
 import fasttext
 
 if os.path.exists("fasttext_coicop.bin") is False:
-    download_pb(url = config["URL_FASTTEXT_MINIO"], fname = "fasttext_coicop.bin")
+    download_pb(
+        url = config["URL_FASTTEXT_MINIO"],
+        fname = "fasttext_coicop.bin"
+    )
 
 
 model = fasttext.load_model("fasttext_coicop.bin")
@@ -585,9 +653,10 @@ coicop = import_coicop_labels(
 coicop.loc[coicop["Code"].str.contains("01.1.7.3.2")]
 ```
 
-Maintenant nous avons tous les ingrédients pour généraliser notre recette `fasttext`.
-L'application en série de prédictions via `fasttext` étant un peu fastidieuse et peu élégante (elle
-nécessite d'être à l'aise avec les lists `Python`) et n'étant pas le centre de notre sujet,
+Maintenant nous avons tous les ingrédients pour généraliser notre approche.
+L'application en série de prédictions
+via `Fasttext` étant un peu fastidieuse et peu élégante (elle
+nécessite d'être à l'aise avec les listes `Python`) et n'étant pas le centre de notre sujet,
 la fonction suivante est fournie pour effectuer cette opération :
 
 ```{python}
@@ -606,25 +675,33 @@ def model_predict_coicop(data, model, product_column: str = "preprocessed_labels
 openfood = model_predict_coicop(openfood, model)
 ```
 
-### Version alternative via l'API [`predicat`](https://github.com/InseeFrLab/predicat)  (🟡,🟢,🔵,🔴,⚫)
+## 1.3.bis Version alternative via l'API [`predicat`](https://github.com/InseeFrLab/predicat)  (🟡,🟢,🔵,🔴,⚫)
 
 
-L'utilisation d'API pour accéder à des données devient de plus en plus fréquente. Mais
-les API peuvent servir à faire beaucoup plus, notamment à récupérer des prédictions
+L'utilisation d'API pour accéder à des données devient de plus en plus fréquente. 
+Si vous êtes peu familiers avec les API, vous pouvez consulter
+ce [chapitre du cours de `Python` de l'ENSAE](https://pythonds.linogaliana.fr/api/)
+ou de la documentation [`utilitR` (langage `R`)](https://www.book.utilitr.org/03_fiches_thematiques/fiche_api)
+
+Les API peuvent servir à faire beaucoup plus que récupérer des données. Elles sont
+notamment de plus en plus utilisées pour récupérer des prédictions
 d'un modèle. La plateforme [`HuggingFace`](https://huggingface.co/) est très appréciée
 pour cela: elle a grandement facilité la réutilisation de modèles mis en disposition
 en _open source_. Cette approche a principalement deux avantages:
 
 - Elle permet d'appliquer sur les données fournies en entrée exactement les mêmes pré-traitement
 que sur les données d'entrainement. Ceci renforce la fiabilité des prédictions. 
-- Elle facilite le travail des data scientists ou statisticiens car ils ne sont plus obligés 
+- Elle facilite le travail des _data scientists_ ou statisticiens car ils ne sont plus obligés 
 de mettre en place des fonctions compliquées pour passer les prédictions dans une colonne
 de `DataFrame`. 
 
 Ici, nous proposons de tester une API mise à disposition
-de manière expérimentale pour faciliter la réutilisation de notre modèle de classification. 
+de manière expérimentale pour faciliter la réutilisation de notre modèle de classification
+dans la nomenclature COICOP.
+
 Cette API s'appelle `predicat` et son code source est
 disponible sur [`Github`](https://github.com/InseeFrLab/predicat).
+
 Pour les parcours 🟡,🟢,🔵, nous suggérons de se cantonner à tester quelques exemples. 
 Pour les parcours 🔴 et ⚫ qui voudraient se tester sur les API,
 nous proposons de généraliser ces appels à [`predicat`](https://github.com/InseeFrLab/predicat)
@@ -637,6 +714,7 @@ pour classifier toutes nos données.
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "grey", title = "Consommer un modèle sous forme d'API (🔴,⚫)")
 ```
@@ -681,6 +759,7 @@ de l'`OpenFoodFacts`
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🔵", title = "Consommer un modèle sous forme d'API (🔵)")
 ```
@@ -701,28 +780,62 @@ tester l'API sur une centaine de noms de produits pris aléatoirement (ceux avan
 :::
 
 
-### Entrainer son propre classifieur (🔴,⚫)
+## 1.3.ter Entrainer son propre classifieur (🔴,⚫)
 
 Les grimpeurs des voies 🔴 et ⚫ sont encouragés à essayer d'entraîner
-eux-mêmes un modèle de classification:
+eux-mêmes un modèle de classification.
+
+::: {.cell .markdown}
+<!----- boite 🔴, ⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+#| eval: true
+from utils_notebook import create_box_level
+create_box_level(color = "grey", title = "Entrainer son propre modèle de classification (🔴, ⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+A partir des exemples présents dans [ce _notebook_](https://github.com/InseeFrLab/predicat/blob/master/help/example-request.ipynb),
+tester l'API sur une centaine de noms de produits pris aléatoirement (ceux avant _preprocessing_). L'apprentissage peut
+être fait à partir de la variable `category` disponible sur `OpenFoodFacts`.
+
+Voici la consigne: 
 
 - 🔴 : utiliser `fasttext`
 - ⚫ : liberté sur le _framework_ utilisé
 
 
+```{=html}
+</details>
+</div>
+```
 
-### Ecriture de la base sur l'espace de stockage distant
+<!----- end 🔴, ⚫ ----->
+:::
+
+
+
+## 1.4. Ecriture de la base sur l'espace de stockage distant
 
 Le fait d'avoir effectué en amont ce type d'opération permettra
 d'économiser du temps par la suite puisqu'on s'évite des calculs à la
 volée coûteux en performance (rien de pire qu'une page _web_ qui rame non ?). 
 
-Pour facilement retrouver ces données, on va les écrire dans un espace
+Pour facilement retrouver ces données, on propose de les écrire dans un espace
 de stockage accessible facilement. Pour cela, nous proposons d'utiliser celui
-du SSP Cloud. Nous proposons ici d'utiliser le package `s3fs` qui est 
+du `SSP Cloud` pour les personnes ayant un compte dessus. Pour les personnes
+n'ayant pas de compte sur le `SSP Cloud`, vous pouvez passer cette étape et réutiliser
+le jeu de données que nous proposons pour la suite de ce parcours. 
+
+Nous proposons ici d'utiliser le package `s3fs` qui est 
 assez pratique pour traiter un espace distant comme on ferait d'un 
 espace de stockage local. Pour en apprendre plus sur le système
-de stockage S3 (la technologie utilisée par le SSP Cloud) 
+de stockage `S3` (la technologie utilisée par le SSP Cloud) 
 ou sur le format `Parquet`, vous pouvez consulter ce chapitre
 du [cours de `Python` de l'ENSAE](https://pythonds.linogaliana.fr/reads3/)
 
@@ -750,15 +863,21 @@ with fs.open(DESTINATION_OPENFOOD, "wb") as file_location:
     openfood.to_parquet(file_location)
 ```
 
-⚠️ il faut avoir modifié la valeur de `BUCKET` dans le fichier `config.yaml` pour
-que cette commande fonctionne. 
+⚠️ __Il faut avoir modifié la valeur de `BUCKET` dans le fichier `config.yaml` pour
+que cette commande fonctionne__. 
 
 Enfin, pour rendre ce fichier accessible à votre future application, 
-il est nécessaire d'exécuter la cellule suivante
+il est nécessaire d'éditer la cellule ci-dessous pour remplacer
+`<USERNAME_SSPCLOUD>` par votre nom d'utilisateur sur le `SSPCloud` puis 
+d'exécuter la cellule suivante: 
 
 ```{python}
 #| eval: false
-!mc anonymous set download s3/projet-funathon/2023/sujet4/diffusion
+!mc anonymous set download s3/<USERNAME_SSPCLOUD>/2023/sujet4/diffusion
 ```
 
 qui rend ce fichier public. 
+
+Le fichier sera ainsi disponible en téléchargement directement depuis un URL de la forme: 
+
+> https://minio.lab.sspcloud.fr/<USERNAME_SSPCLOUD>/2023/sujet4/diffusion/openfood.parquet
