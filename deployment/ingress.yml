@@ -5,9 +5,9 @@ metadata:
 spec:
   tls:
     - hosts:
-        - deviensenormeetsec.lab.sspcloud.fr
+        - myyuka.lab.sspcloud.fr
   rules:
-    - host: deviensenormeetsec.lab.sspcloud.fr
+    - host: myyuka.lab.sspcloud.fr
       http:
         paths:
           - path: /
