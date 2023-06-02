@@ -5,9 +5,9 @@ metadata:
 spec:
   tls:
     - hosts:
-        - enormeetsec.lab.sspcloud.fr
+        - deviensenormeetsec.lab.sspcloud.fr
   rules:
-    - host: enormeetsec.lab.sspcloud.fr
+    - host: deviensenormeetsec.lab.sspcloud.fr
       http:
         paths:
           - path: /
