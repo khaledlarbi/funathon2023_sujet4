@@ -11,6 +11,18 @@ def compute_stats_nutriments(data):
     stats_nutritionnelles = pd.melt(stats_nutritionnelles, id_vars=['coicop', 'quantile'])
     return stats_nutritionnelles
 
+def compute_stats_grades(data, indices_synthetiques):
+    stats_notes = (
+        data
+        .groupby("coicop")
+        .agg({i:'value_counts' for i in indices_synthetiques})
+        .reset_index(names=['coicop', 'note'])
+    )
+    stats_notes = pd.melt(stats_notes, id_vars = ['coicop','note'])
+    stats_notes = stats_notes.dropna().drop_duplicates(subset = ['variable','note','coicop'])
+  
+    return stats_notes
+
 
 def quantile_one_variable_sql(con, variable="energy-kcal_100g", path_within_s3 = "temp.parquet"):
     query = "SELECT coicop, " + ", ".join(

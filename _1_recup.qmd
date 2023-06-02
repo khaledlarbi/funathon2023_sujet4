@@ -737,6 +737,7 @@ catégoriser l'ensemble des données
 Voici, pour les parcours 🟡,🟢,🔵, un exemple d'utilisation:
 
 ```{python}
+#| eval: false
 import requests
 
 def predict_from_api(product_name):
@@ -846,7 +847,6 @@ couche d'abstraction supplémentaire avec `fs.open`:
 
 
 ```{python}
-#| eval: false
 from utils.import_yaml import import_yaml
 import s3fs
 
