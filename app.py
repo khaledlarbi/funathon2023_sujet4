@@ -1,11 +1,6 @@
 import streamlit as st
 import cv2
-import duckdb
-import requests
 import pandas as pd
-import s3fs
-import numpy as np
-from PIL import Image
 
 from utils.detect_barcode import extract_ean, visualise_barcode
 from utils.pipeline import find_product_openfood
@@ -18,14 +13,17 @@ info_nutritionnelles = [
 
 st.title('Mon Yuka 🥕 avec Python 🐍')
 
-#input_url = st.text_input('Renseigner un url', 'https://barcode-list.com/barcodeImage.php?barcode=3274080005003')
+
+# input_url = st.text_input('Renseigner un url', 'https://barcode-list.com/barcodeImage.php?barcode=3274080005003')
 def label_grade_formatter(s):
-    return s.split("_", maxsplit = 1)[0].capitalize()
+    return s.split("_", maxsplit=1)[0].capitalize()
 
 
 def local_css(file_name):
     with open(file_name) as f:
         st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
+
+
 local_css("style.css")
 
 
@@ -46,7 +44,7 @@ with st.sidebar:
         'Quelles statistiques afficher ?',
         ["nutriscore_grade", "nova_group", "ecoscore_grade"],
         ["nutriscore_grade", "nova_group", "ecoscore_grade"],
-        format_func = label_grade_formatter)
+        format_func=label_grade_formatter)
 
 
 if input_url is not None:
@@ -62,8 +60,6 @@ st.write(
 
 # partie 2: retrouver le produit depuis openfood
 
-
-
 stats_notes = pd.read_parquet("https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/stats_notes_pandas.parquet")
 
 
@@ -71,6 +67,7 @@ stats_notes = pd.read_parquet("https://minio.lab.sspcloud.fr/projet-funathon/202
 def load_data(ean):
     openfood_data = find_product_openfood(ean)
     return openfood_data
+
 
 if input_url is not None:
     subset = load_data(ean)
@@ -91,4 +88,3 @@ st.markdown(t, unsafe_allow_html=True)
 for var in options:
     fig = plot_product_info(subset, var, stats_notes)
     st.plotly_chart(fig, height=800)
-
