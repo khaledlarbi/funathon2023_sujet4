@@ -98,8 +98,6 @@ Les étapes à suivre sont les suivantes :
 - si tout s'est bien passé, une action devrait se lancer (cf. onglet `Actions` du dépôt) afin de construire l'image et de l'envoyer sur le `DockerHub`
 - si l'action s'est bien déroulée (flèche verte), aller vérifier que l'image est bien disponible dans votre espace sur le `DockerHub`
 
-L'image peut à présent être récupérée (*pull*) et déployée sur n'importe quel environnement.
-
 ```{=html}
 </details>
 </div>
@@ -111,3 +109,46 @@ L'image peut à présent être récupérée (*pull*) et déployée sur n'importe
 
 
 ## Déploiement sur le `SSP Cloud`
+
+Maintenant que l'image de notre application est disponible sur le `DockerHub`, elle peut à présent être récupérée (*pull*) et déployée sur n'importe quel environnement. Dans notre cas, on va la déployer sur un cluster `Kubernetes`, l'infrastructure sous-jacente du `SSP Cloud`. Le fonctionnement de `Kubernetes` est assez technique, mais l'on pourra s'abstraire de certaines parties selon le niveau de difficulté choisi.
+
+
+::: {.cell .markdown}
+<!----- boite 🔴,⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+#| eval: true
+from utils_notebook import create_box_level
+create_box_level(color = "grey", title = "Déploiement de l'application à partir du `DockerHub` `InseeFrLab` (🔴,⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+En amont de ce projet, nous avons construit une image `Docker` fonctionnelle de l'application, disponible sur le `DockerHub` dans l'espace [inseefrlab](https://hub.docker.com/repository/docker/inseefrlab/funathon2023_sujet4). Nous avons également créés dans le répertoire `deployment/` à la racine du projet les trois fichiers standards nécessaires au déploiement d'une application sur `Kubernetes`. 
+
+Afin de déployer l'application, suivre les instructions suivantes :
+- inspecter les fichiers `deployment.yml`, `service.yml` et `ingress.yml` et repérer les éléments suivants :
+    - où est spécifiée l'image que l'on va déployer. Pour la difficulté ⚫: remplacer l'image actuelle par celle que vous avez construite et envoyée sur le `DockerHub` dans la partie précédente
+    - où sont spécifiées les ressources computationnelles que l'on va allouer à l'application
+    - où est défini le port que l'on a exposé dans le `Dockerfile`
+    - où est défini le port sur lequel on va exposer l'application sur le cluster `Kubernetes`
+    - où est définie l'URL à laquelle on va exposer l'application pour que les utilisateurs puissent s'y connecter. La modifier (à 2 reprises) pour y indiquer une adresse personalisée pour votre déploiement. Seule contrainte : elle doit être de la forme : `*.lab.sspcloud.fr` 
+- ouvrir un terminal dans le service `Jupyter`
+- se placer dans le projet du funathon : `cd funathon2023_sujet4`
+- appliquer les contrats de déploiement : `kubernetes apply -f deployment/`
+- vérifier le lancement du conteneur : `watch kubernetes get pods`. Le nom associé devrait être de la forme `funathon2023-sujet4-****-*****`
+- une fois que le conteneur est indiqué comme `Running`, entrer dans un navigateur l'URL que vous avez spécifié dans le fichier `ingress.yml`, et vérifier que l'application fonctionne correctement
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔴,⚫ ----->
+:::
+
+Votre application est maintenant déployée, vous pouvez partager cette URL avec n'importe quel utilisateur dans le monde !
