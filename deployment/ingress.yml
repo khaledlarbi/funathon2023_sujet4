@@ -5,9 +5,9 @@ metadata:
 spec:
   tls:
     - hosts:
-        - funathon2023-sujet4.lab.sspcloud.fr
+        - enormeetsec.lab.sspcloud.fr
   rules:
-    - host: funathon2023-sujet4.lab.sspcloud.fr
+    - host: enormeetsec.lab.sspcloud.fr
       http:
         paths:
           - path: /
