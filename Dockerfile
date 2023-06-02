@@ -1,7 +1,10 @@
 FROM inseefrlab/onyxia-python-minimal:py3.10.9
 
+<<<<<<< HEAD
 USER root
 
+=======
+>>>>>>> 24f3488 (dev)
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
@@ -11,7 +14,11 @@ RUN apt-get update && apt-get install -y \
     libzbar0 \    
     && rm -rf /var/lib/apt/lists/*
 
+<<<<<<< HEAD
 COPY . .
+=======
+COPY requirements.txt .
+>>>>>>> 24f3488 (dev)
 
 RUN pip install -r requirements.txt
 

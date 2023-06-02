@@ -14,7 +14,11 @@ spec:
     spec:
       containers:
         - name: app
+<<<<<<< HEAD
           image: inseefrlab/funathon2023_sujet4:deploy-app
+=======
+          image: inseefrlab/funathon2023-sujet4:latest
+>>>>>>> 24f3488 (dev)
           imagePullPolicy: Always
           resources:
             limits:
