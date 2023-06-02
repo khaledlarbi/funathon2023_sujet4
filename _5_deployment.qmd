@@ -1,0 +1,6 @@
+# 4. Déploiement de l'application interactive
+
+L'application construite dans la partie précédente reste pour le moment à un niveau local: elle n'est accessible que via l'utilisateur qui l'a déployée et ce sur la machine où elle a été déployée. L'objectif de cette dernière partie est de **déployer** l'application, c'est à dire de la rendre accessible en continu à n'importe quel utilisateur. Pour cela, on va devoir s'intéresser à la technologie des **conteneurs**, qui est à la base des infrastructures de production modernes.
+
+## Travail préliminaire
+
