@@ -134,7 +134,7 @@ Afin de déployer l'application, suivre les instructions suivantes :
 - inspecter les fichiers `deployment.yml`, `service.yml` et `ingress.yml` et repérer les éléments suivants :
     - où est spécifiée l'image que l'on va déployer. Pour la difficulté ⚫: remplacer l'image actuelle par celle que vous avez construite et envoyée sur le `DockerHub` dans la partie précédente
     - où sont spécifiées les ressources computationnelles que l'on va allouer à l'application
-    - où est défini le port que l'on a exposé dans le `Dockerfile`
+    - où est défini le port que l'on a exposé dans le `Dockerfile`. Pour la difficulté ⚫: si vous n'avez pas exposé l'application sur le port `8000`, modifier cette ligne
     - où est défini le port sur lequel on va exposer l'application sur le cluster `Kubernetes`
     - où est définie l'URL à laquelle on va exposer l'application pour que les utilisateurs puissent s'y connecter. La modifier (à 2 reprises) pour y indiquer une adresse personalisée pour votre déploiement. Seule contrainte : elle doit être de la forme : `*.lab.sspcloud.fr` 
 - ouvrir un terminal dans le service `Jupyter`
