@@ -33,18 +33,18 @@ def figure_infos_nutritionnelles(
 
 def figure_infos_notes(
     data, variable_note = 'nutriscore_grade',
-    coicop = "01.1.7.3.2", note_produit = "B"
+    coicop = "01.1.7.3.2", note_produit = "B",
+    title = "Nutriscore"
 ):
     example_coicop = data.loc[data['variable'] == variable_note]
-    example_coicop = example_coicop.loc[example_coicop['coicop'] == coicop]
-    example_coicop['color'] = np.where(
-        example_coicop['note'] == note_produit, "red", "royalblue"
-    )
+    example_coicop = example_coicop.loc[example_coicop['coicop']==coicop]
+    example_coicop['color'] = np.where(example_coicop['note'] == note_produit, "Note du produit", "Autres produits")
 
     fig = px.bar(
         example_coicop,
         x='note', y='value', color = "color", template = "simple_white",
-        title=variable_note,
+        title=title,
+        color_discrete_map={"Note produit": "red", "Autres produits": "royalblue"},
         labels={
             "note": "Note",
             "value": ""
