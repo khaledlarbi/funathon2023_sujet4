@@ -1,11 +1,6 @@
 import streamlit as st
 import cv2
-import duckdb
-import requests
 import pandas as pd
-import s3fs
-import numpy as np
-from PIL import Image
 
 from utils.detect_barcode import extract_ean, visualise_barcode
 from utils.pipeline import find_product_openfood
