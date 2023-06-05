@@ -73,7 +73,8 @@ def plot_product_info(
         stats_notes,
         variable_note = variable,
         coicop = data['coicop'].iloc[0],
-        note_produit = data[variable].iloc[0]
+        note_produit = data[variable].iloc[0],
+        title = variable.split("_")[0].capitalize()
     )
 
     return fig
