@@ -162,8 +162,6 @@ con.execute("""
     SET s3_endpoint='minio.lab.sspcloud.fr'
 """)
 
-from utils.import_yaml import import_yaml
-config = import_yaml("config.yaml")
 url_data = "https://projet-funathon.minio.lab.sspcloud.fr/2023/sujet4/diffusion/openfood.parquet"
 ```
 

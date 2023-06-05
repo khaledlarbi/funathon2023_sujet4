@@ -40,7 +40,7 @@ def fuzzy_matching_product(openfood_produit, product_name, con, url_data, liste_
     return out_textual_imputed
 
 
-def find_product_openfood(con, liste_colonnes_sql, url_data, ean):
+def find_product_openfood(con, liste_colonnes_sql, url_data, ean, coicop):
     openfood_produit = con.sql(
         f"SELECT {liste_colonnes_sql} FROM read_parquet('{url_data}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)"
     ).df()
@@ -51,7 +51,8 @@ def find_product_openfood(con, liste_colonnes_sql, url_data, ean):
         openfood_produit = fuzzy_matching_product(
             openfood_produit, product_name, con, url_data,
             liste_colonnes_sql, indices_synthetiques)
-        openfood_produit = openfood_produit.merge(coicop, left_on = "coicop", right_on = "Code")
+
+    openfood_produit = openfood_produit.merge(coicop, left_on = "coicop", right_on = "Code")
 
     return openfood_produit
 

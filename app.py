@@ -1,15 +1,35 @@
 import streamlit as st
 import cv2
 import pandas as pd
+import duckdb
 
 from utils.detect_barcode import extract_ean, visualise_barcode
 from utils.pipeline import find_product_openfood
 from utils.construct_figures import plot_product_info
 
-info_nutritionnelles = [
-    'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g',
-    'carbohydrates_100g', 'sugars_100g',
-    'proteins_100g', 'salt_100g']
+# --------------------
+# METADATA
+indices_synthetiques = [
+    "nutriscore_grade", "ecoscore_grade", "nova_group"
+]
+principales_infos = [
+    'product_name', 'code', 'preprocessed_labels', 'coicop', \
+    'url', 'image_url'
+]
+liste_colonnes = principales_infos + indices_synthetiques
+liste_colonnes_sql = [f"\"{s}\"" for s in liste_colonnes]
+liste_colonnes_sql = ', '.join(liste_colonnes_sql)
+
+con = duckdb.connect(database=':memory:')
+con.execute("""
+    INSTALL httpfs;
+    LOAD httpfs;
+    SET s3_endpoint='minio.lab.sspcloud.fr'
+""")
+
+url_data = "https://projet-funathon.minio.lab.sspcloud.fr/2023/sujet4/diffusion/openfood.parquet"
+# --------------------
+
 
 st.title('Mon Yuka 🥕 avec Python 🐍')
 
@@ -46,13 +66,6 @@ with st.sidebar:
         ["nutriscore_grade", "nova_group", "ecoscore_grade"],
         format_func=label_grade_formatter)
 
-
-if input_url is not None:
-    decoded_objects = extract_ean(input_url)
-    ean = decoded_objects[0].data.decode("utf-8")
-    st.write('EAN détecté:', ean)
-
-
 st.write(
     '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">',
     unsafe_allow_html=True
@@ -60,31 +73,43 @@ st.write(
 
 # partie 2: retrouver le produit depuis openfood
 
-stats_notes = pd.read_parquet("https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/stats_notes_pandas.parquet")
 
+
+stats_notes = pd.read_parquet("https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/stats_notes_pandas.parquet")
+from utils.download_pb import import_coicop_labels
+coicop = import_coicop_labels(
+    "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls"
+)
 
 @st.cache_data
 def load_data(ean):
-    openfood_data = find_product_openfood(ean)
+    openfood_data = find_product_openfood(con, liste_colonnes_sql, url_data, ean, coicop)
     return openfood_data
 
-
-if input_url is not None:
-    subset = load_data(ean)
-else:
+if input_url is None:
     st.write('Produit exemple: Coca-Cola')
-    subset = load_data("5000112602791")
+    subset = load_data("5000112602791")    
+else:
+    decoded_objects = extract_ean(input_url)
+    try:
+        ean = decoded_objects[0].data.decode("utf-8")
+        st.write('EAN détecté:', ean)
+        subset = load_data(ean)
+    except:
+        st.write('🚨 Problème de lecture de la photo, essayez de mieux cibler le code-barre')
+        st.image("https://i.kym-cdn.com/entries/icons/original/000/025/458/grandma.jpg")
+
 
 st.write('Consulter ce produit sur le site openfoodfacts:', subset["url"].iloc[0])
 st.image(subset["image_url"].iloc[0])
-
+        
 st.dataframe(subset.loc[:, ~subset.columns.str.contains("url")])
-
+        
 t = f"<div>Statistiques parmi les <span class='highlight blue'>{subset['category'].iloc[0]}<span class='bold'>COICOP</span>"
-
+        
 st.markdown(t, unsafe_allow_html=True)
-
-
+        
+        
 for var in options:
     fig = plot_product_info(subset, var, stats_notes)
     st.plotly_chart(fig, height=800)
