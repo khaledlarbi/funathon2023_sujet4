@@ -25,49 +25,33 @@ con.execute("""
 url_data = "https://projet-funathon.minio.lab.sspcloud.fr/2023/sujet4/diffusion/openfood.parquet"
 coicop = import_coicop_labels(url = "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls")
 
-def fuzzy_matching_product(openfood_produit, product_name, con, url_data):
-    out_textual = con.sql(
-        f"SELECT {liste_colonnes_sql} from read_parquet('{url_data}') WHERE jaro_winkler_similarity('{product_name}',product_name) > 0.9 AND \"energy-kcal_100g\" IS NOT NULL"
-    )
+def fuzzy_matching_product(openfood_produit, product_name, con, url_data, liste_colonnes_sql, indices_synthetiques):
+    out_textual = con.sql(f"SELECT {liste_colonnes_sql} from read_parquet('{url_data}') WHERE jaro_winkler_similarity('{product_name}',product_name) > 0.8 AND \"energy-kcal_100g\" IS NOT NULL")
     out_textual = out_textual.df()
-
-    out_textual.loc[:, indices_synthetiques] = pd.concat(
-        [clean_note(out_textual, s, "wide") for s in indices_synthetiques],
-        axis = 1
-    )
 
     out_textual_imputed = pd.concat(
         [
-            openfood_produit.loc[:, principales_infos].reset_index(drop = True),
-            pd.DataFrame(out_textual.loc[:, info_nutritionnelles].mean()).T,
-            pd.DataFrame(out_textual.loc[:, indices_synthetiques].replace('',np.nan).mode())
+            openfood_produit.loc[:, ["code", "product_name", "coicop"]].reset_index(drop = True),
+            pd.DataFrame(out_textual.loc[:, indices_synthetiques].replace("NONE","").replace('',np.nan).mode(dropna=True))
         ], ignore_index=True, axis=1
     )
-    out_textual_imputed.columns = principales_infos + info_nutritionnelles + indices_synthetiques
+    out_textual_imputed.columns = ["code", "product_name", "coicop"] + indices_synthetiques
     
     return out_textual_imputed
 
 
-def find_product_openfood(ean):
+def find_product_openfood(con, liste_colonnes_sql, url_data, ean):
     openfood_produit = con.sql(
         f"SELECT {liste_colonnes_sql} FROM read_parquet('{url_data}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)"
     ).df()
     
     product_name = openfood_produit["product_name"].iloc[0]
     
-    if openfood_produit['energy-kcal_100g'].isnull().iloc[0]:
+    if openfood_produit['nutriscore_grade'].isin(['NONE','']).iloc[0]:
         openfood_produit = fuzzy_matching_product(
-            openfood_produit, product_name, con, url_data
-        )
-    else:
-        openfood_produit.loc[:, indices_synthetiques] = pd.concat(
-            [clean_note(openfood_produit, s, "wide") for s in indices_synthetiques],
-            axis = 1
-        )        
-
-    openfood_produit = openfood_produit.merge(
-        coicop, left_on = "coicop", right_on = "Code"
-    )
+            openfood_produit, product_name, con, url_data,
+            liste_colonnes_sql, indices_synthetiques)
+        openfood_produit = openfood_produit.merge(coicop, left_on = "coicop", right_on = "Code")
 
     return openfood_produit
 

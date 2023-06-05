@@ -1,27 +1,22 @@
-# 3. Comparer un produit à un groupe similaire
+# 3️⃣ Comparer un produit à un groupe similaire
 
 Tout ce travail préliminaire nous permettra d'afficher sur notre application des statistiques
 propres à chaque catégorie.
 
 ## Travail préliminaire
 
-```{python}
-from utils.import_yaml import import_yaml
-config = import_yaml("config.yaml")
+On propose d'utiliser le jeu de données préparé précedemment
 
-INPUT_OPENFOOD = f"{config['BUCKET']}{config['DESTINATION_DATA_S3']}/openfood.parquet"
+```{python}
+
 ```
 
 ```{python}
-info_nutritionnelles = [
-    'energy-kcal_100g', 'fat_100g', 'saturated-fat_100g',
-    'carbohydrates_100g', 'sugars_100g',
-    'proteins_100g', 'salt_100g']
 indices_synthetiques = [
     "nutriscore_grade", "ecoscore_grade", "nova_group"
 ]
 principales_infos = ['product_name', 'code', 'preprocessed_labels', 'coicop']
-liste_colonnes = principales_infos + indices_synthetiques + info_nutritionnelles
+liste_colonnes = principales_infos + indices_synthetiques
 liste_colonnes_sql = [f"\"{s}\"" for s in liste_colonnes]
 liste_colonnes_sql = ', '.join(liste_colonnes_sql)
 ```
@@ -39,7 +34,8 @@ url_image = "https://images.openfoodfacts.org/images/products/500/011/260/2791/f
 
 Dans le cadre de notre application, on permettra aux utilisateurs d'_uploader_ 
 la photo d'un produit, ce sera plus _fun_.
-En attendant, partir d'un produit standardisé
+En attendant notre application,
+partir d'un produit standardisé
 permet déjà de mettre en oeuvre la logique à ré-appliquer plus tard. 
 
 Pour se simplifier la vie, le plus simple pour repérer un code-barre est d'utiliser
@@ -53,6 +49,11 @@ from skimage import io
 io.imread(url_image)
 ```
 
+Grâce à `sklearn.image`, on peut utiliser
+l'URL d'une page web ou le chemin d'un fichier de manière indifférente
+pour la valeur de `url_image`. 
+
+
 ::: {.cell .markdown}
 <!----- boite 🟢🔵🔴 et ⚫ ----->
 
@@ -60,6 +61,7 @@ io.imread(url_image)
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "grey", title = "Extraire le code-barre à partir d'une image (🟢🔵🔴 et ⚫)")
 ```
@@ -68,9 +70,9 @@ create_box_level(color = "grey", title = "Extraire le code-barre à partir d'une
 ```
 
 1. Après avoir importé l'image via `io.imread`, utiliser `pyzbar.decode`
-pour extraire les informations voulues, notamment le code-barre
+pour extraire les informations voulues, notamment le code-barre. 
 2. Si vous avez nommé l'objet généré, vérifier le code-barre avec
-`obj[0].data.decode()`
+`obj[0].data.decode()`.
 3. A partir de cela, créer une fonction `extract_ean` pour décoder l'image
 (en retournant l'objet généré par `pyzbar`)
 
@@ -87,9 +89,9 @@ pour extraire les informations voulues, notamment le code-barre
 #| label: get-openfood-parquet
 #| output: false
 #| eval: false
+# Solution pour voie 🟡
 from pyzbar import pyzbar
 
-# Solution pour voie 🟡
 def extract_ean(url, verbose=True):
     img = io.imread(url)
     decoded_objects = pyzbar.decode(img)
@@ -102,7 +104,7 @@ def extract_ean(url, verbose=True):
             print("Data:", obj.data)
     return decoded_objects
 
-obj = extract_ean(url_image)
+obj = extract_ean(url_image, verbose = False)
 
 obj[0].data.decode()
 ```
@@ -114,13 +116,21 @@ from utils.detect_barcode import extract_ean
 extract_ean(url_image)
 ```
 
+On obtient bien un code identifiant notre produit. Il s'agit
+de l'EAN qui est un identifiant unique, partagé quelque soit
+le point de vente d'un produit. Il s'agit d'un identifiant
+présent sur tout code-barre, utilisé 
+dans les systèmes d'information 
+des grandes enseignes mais aussi dans les bases produits
+qui peuvent être utilisées de manière annexe (par exemple
+l'`OpenFoodFacts`). 
+
 
 ## Association d'un code barre à un produit d'openfoodfacts
 
-
 Maintenant qu'on dispose d'un code-barre (le numéro EAN), 
 on va trouver le produit dans `OpenFoodFacts`
-à partir de ce code barre.
+à partir de ce code-barre.
 
 Cependant, comme il peut arriver
 qu'un produit dispose d'informations incomplètes, 
@@ -130,13 +140,13 @@ l'appariement flou (trouver un produit avec un nom proche de celui qu'on
 veut). Ceci est un exercice pour les parcours 🔴 et ⚫, les autres
 voies pouvant prendre cette fonction comme donnée. 
 
-Voici l'EAN d'exemple
+Voici l'EAN d'exemple :
 
 ```{python}
 ean = "5000112602999"
 ```
 
-Pour avoir un outil performant, on propose d'utiliser à
+Pour avoir un outil performant, on propose d'utiliser
 `DuckDB` pour lire et filtrer les données. Cela sera plus performant que 
 lire, à chaque fois que l'utilisateur de notre applicatoin _upload_ une image,
 un gros fichier (2 millions de ligne) pour n'en garder qu'une. 
@@ -165,6 +175,7 @@ url_data = "https://projet-funathon.minio.lab.sspcloud.fr/2023/sujet4/diffusion/
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "grey", title = "Lire les données avec `DuckDB` (🟢 et 🔵)")
 ```
@@ -199,6 +210,7 @@ La requête que nous proposons d'utiliser est à structurer à partir des élém
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "grey", title = "Lire les données avec `DuckDB` (🔴 et ⚫)")
 ```
@@ -234,25 +246,19 @@ variable `code`
 
 import numpy as np
 import pandas as pd
-from utils.preprocess_openfood import clean_note
+from utils.pipeline import clean_note
 
-def fuzzy_matching_product(openfood_produit, product_name, con, url_data, liste_colonnes_sql, info_nutritionnelles, indices_synthetiques):
+def fuzzy_matching_product(openfood_produit, product_name, con, url_data, liste_colonnes_sql, indices_synthetiques):
     out_textual = con.sql(f"SELECT {liste_colonnes_sql} from read_parquet('{url_data}') WHERE jaro_winkler_similarity('{product_name}',product_name) > 0.8 AND \"energy-kcal_100g\" IS NOT NULL")
     out_textual = out_textual.df()
-
-    out_textual.loc[:, indices_synthetiques] = pd.concat(
-        [clean_note(out_textual, s, "wide") for s in indices_synthetiques],
-        axis = 1
-    )
 
     out_textual_imputed = pd.concat(
         [
             openfood_produit.loc[:, ["code", "product_name", "coicop"]].reset_index(drop = True),
-            pd.DataFrame(out_textual.loc[:, info_nutritionnelles  ].mean()).T,
-            pd.DataFrame(out_textual.loc[:, indices_synthetiques].replace('',np.nan).mode())
+            pd.DataFrame(out_textual.loc[:, indices_synthetiques].replace("NONE","").replace('',np.nan).mode(dropna=True))
         ], ignore_index=True, axis=1
     )
-    out_textual_imputed.columns = ["code", "product_name", "coicop"] + info_nutritionnelles + indices_synthetiques
+    out_textual_imputed.columns = ["code", "product_name", "coicop"] + indices_synthetiques
     
     return out_textual_imputed
 ```
@@ -268,20 +274,24 @@ coicop = import_coicop_labels(
 ```{python}
 # Solution pour voie 🟡
 
-def find_product_openfood(con, liste_colonnes_sql, url_data, ean, coicop):
-    openfood_produit = con.sql(f"SELECT {liste_colonnes_sql} FROM read_parquet('{url_data}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)").df()
+def find_product_openfood(con, liste_colonnes_sql, url_data, ean):
+    openfood_produit = con.sql(
+        f"SELECT {liste_colonnes_sql} FROM read_parquet('{url_data}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)"
+    ).df()
     
     product_name = openfood_produit["product_name"].iloc[0]
     
-    if openfood_produit['energy-kcal_100g'].isnull().iloc[0]:
-        openfood_produit = fuzzy_matching_product(openfood_produit, product_name, con, url_data, liste_colonnes_sql, info_nutritionnelles, indices_synthetiques)
+    if openfood_produit['nutriscore_grade'].isin(['NONE','']).iloc[0]:
+        openfood_produit = fuzzy_matching_product(
+            openfood_produit, product_name, con, url_data,
+            liste_colonnes_sql, indices_synthetiques)
         openfood_produit = openfood_produit.merge(coicop, left_on = "coicop", right_on = "Code")
 
     return openfood_produit
 ```
 
 ```{python}
-openfood_produit = find_product_openfood(con, liste_colonnes_sql, url_data, ean, coicop)
+openfood_produit = find_product_openfood(con, liste_colonnes_sql, url_data, ean)
 ```
 
 ## Production automatique d'un graphique
