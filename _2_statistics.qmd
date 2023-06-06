@@ -201,7 +201,7 @@ pour n'importer que les variables nécessaires.
 
 ```{python}
 #| classes: yellow-code
-#| label: get-openfood-parquet
+#| label: get-openfood-parquet-2
 #| output: false
 
 # Solution pour voie 🟡, 🟢 et 🔵

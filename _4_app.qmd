@@ -2,5 +2,13 @@
 
 Cette partie vise à assembler les briques précédentes afin de les rendre facilement accessibles à un utilisateur final. Pour cela, nous allons construire une application interactive à l'aide du framework `Streamlit` en `Python`.
 
-## Travail préliminaire
+L'objectif est de créer une application 
 
+## Créer l'application
+
+## Lancer l'application
+
+```{python}
+#| eval: false
+!streamlit run app.py --server.port 5000 --server.address 0.0.0.0
+```

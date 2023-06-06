@@ -1,5 +1,6 @@
 ---
 title: "Mon Yuka 🥕 avec Python 🐍"
+eval: false
 execute:
   cache: true
   keep-ipynb: true
@@ -175,3 +176,7 @@ officiel de l'Insee.
 
 
 {{< include _1_recup.qmd >}}
+{{< include _2_statistics.qmd >}}
+{{< include _3_match_barcode.qmd >}}
+
+

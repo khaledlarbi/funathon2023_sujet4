@@ -25,7 +25,7 @@ coicop = import_coicop_labels(
 )
 ```
 
-## 3.1. Détection de code barre
+## 3.1. Détection de code barre (🟡,🟢,🔵,🔴,⚫)
 
 La première brique de notre application consiste à repérer un produit par le scan du code-barre. 
 Nous allons partir pour le moment d'un produit d'exemple, ci-dessous: 
@@ -130,7 +130,7 @@ qui peuvent être utilisées de manière annexe (par exemple
 l'`OpenFoodFacts`). 
 
 
-## 3.2. Association d'un code barre à un produit d'OpenFoodFacts
+## 3.2. Association d'un code barre à un produit d'`OpenFoodFacts` (🟡,🟢,🔵,🔴,⚫)
 
 Maintenant qu'on dispose d'un code-barre (le numéro EAN), 
 on va trouver le produit dans `OpenFoodFacts`
@@ -293,7 +293,8 @@ def fuzzy_matching_product(openfood_produit, product_name, con, url_data, liste_
     return out_textual_imputed
 ```
 
-Voici finalement le pipeline mis en oeuvre: 
+Voici finalement le _pipeline_ mis en oeuvre
+par une fonction : 
 
 ```{python}
 # Solution pour voie 🟡
@@ -314,15 +315,33 @@ def find_product_openfood(con, liste_colonnes_sql, url_data, ean):
     return openfood_produit
 ```
 
-```{python}
-openfood_produit = find_product_openfood(con, liste_colonnes_sql, url_data, ean)
-```
-
-## Production automatique d'un graphique
+Qui peut être finalisé de la manière suivante:
 
 ```{python}
-stats_notes = pd.read_parquet("https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/stats_notes_pandas.parquet")
+openfood_produit = find_product_openfood(
+    con, liste_colonnes_sql,
+    url_data, ean
+)
+openfood_produit.head(2)
 ```
+
+## Production automatique d'un graphique (🟡,🟢,🔵,🔴,⚫)
+
+La dernière partie du prototypage
+consiste à enrober nos
+fonctions de production de graphiques
+dans une fonction plus générique. 
+
+Pour rappel, l'import des données
+se fait de la manière suivante:
+
+```{python}
+stats_notes = pd.read_parquet(
+    "https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/stats_notes_pandas.parquet"
+)
+```
+
+Dans notre application, nous allons utiliser cette fonction:
 
 ```{python}
 from utils.construct_figures import figure_infos_notes
@@ -357,26 +376,5 @@ fig
 fig = plot_product_info(openfood_produit, "ecoscore_grade", stats_notes)
 fig.update_layout(width=800, height=400)
 fig
-```
-
-
-## COICOP en API
-
-
-
-
-
-```{python}
-#| eval: false
-#| echo: false
-import requests
-
-url_api = f"https://api.lab.sspcloud.fr/predicat/label?k=1&q=%27{product_name}%27"
-url_api = url_api.replace(" ", "%20")
-
-
-output_api_predicat = requests.get(url_api).json()
-coicop_found = output_api_predicat['coicop'][f"'{product_name}'"][0]['label']
-coicop_found
 ```
 
