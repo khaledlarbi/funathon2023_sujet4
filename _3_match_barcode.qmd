@@ -3,13 +3,7 @@
 Tout ce travail préliminaire nous permettra d'afficher sur notre application des statistiques
 propres à chaque catégorie.
 
-## Travail préliminaire
-
 On propose d'utiliser le jeu de données préparé précedemment
-
-```{python}
-
-```
 
 ```{python}
 indices_synthetiques = [
@@ -21,7 +15,17 @@ liste_colonnes_sql = [f"\"{s}\"" for s in liste_colonnes]
 liste_colonnes_sql = ', '.join(liste_colonnes_sql)
 ```
 
-## Détection de code barre
+On va aussi utiliser la nomenclature COICOP qui peut être importée
+via le code ci-dessous:
+
+```{python}
+from utils.download_pb import import_coicop_labels
+coicop = import_coicop_labels(
+    "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls"
+)
+```
+
+## 3.1. Détection de code barre
 
 La première brique de notre application consiste à repérer un produit par le scan du code-barre. 
 Nous allons partir pour le moment d'un produit d'exemple, ci-dessous: 
@@ -126,7 +130,7 @@ qui peuvent être utilisées de manière annexe (par exemple
 l'`OpenFoodFacts`). 
 
 
-## Association d'un code barre à un produit d'openfoodfacts
+## 3.2. Association d'un code barre à un produit d'OpenFoodFacts
 
 Maintenant qu'on dispose d'un code-barre (le numéro EAN), 
 on va trouver le produit dans `OpenFoodFacts`
@@ -134,11 +138,19 @@ on va trouver le produit dans `OpenFoodFacts`
 
 Cependant, comme il peut arriver
 qu'un produit dispose d'informations incomplètes, 
-il peut être utile de faire non seulement de l'apparimeent
+il peut être utile de faire non seulement de l'appariement
 exact (trouver le produit avec le même code EAN) mais aussi de
 l'appariement flou (trouver un produit avec un nom proche de celui qu'on
-veut). Ceci est un exercice pour les parcours 🔴 et ⚫, les autres
+veut).
+
+Ceci est un exercice pour les parcours 🔴 et ⚫, les autres
 voies pouvant prendre cette fonction comme donnée. 
+
+Pour aller plus loin sur cette question des appariements
+flous, il pourrait être utile d'aller
+vers `ElasticSearch`. C'est néanmoins un sujet en soi, 
+nous proposons donc aux curieux de
+consulter [cette ressource](https://pythonds.linogaliana.fr/elastic/).
 
 Voici l'EAN d'exemple :
 
@@ -148,7 +160,7 @@ ean = "5000112602999"
 
 Pour avoir un outil performant, on propose d'utiliser
 `DuckDB` pour lire et filtrer les données. Cela sera plus performant que 
-lire, à chaque fois que l'utilisateur de notre applicatoin _upload_ une image,
+lire, à chaque fois que l'utilisateur de notre application _upload_ une image,
 un gros fichier (2 millions de ligne) pour n'en garder qu'une. 
 
 Voici la configuration à mettre en oeuvre:
@@ -165,6 +177,9 @@ con.execute("""
 url_data = "https://projet-funathon.minio.lab.sspcloud.fr/2023/sujet4/diffusion/openfood.parquet"
 ```
 
+Pour commencer, effectuons une requête SQL pour récupérer le produit
+correspondant au code-barre qu'on a scanné:
+
 
 ::: {.cell .markdown}
 <!----- boite 🟢🔵 ----->
@@ -175,7 +190,7 @@ url_data = "https://projet-funathon.minio.lab.sspcloud.fr/2023/sujet4/diffusion/
 #| output: asis
 #| eval: true
 from utils_notebook import create_box_level
-create_box_level(color = "grey", title = "Lire les données avec `DuckDB` (🟢 et 🔵)")
+create_box_level(color = "grey", title = "Lire les données avec <code>DuckDB</code> (🟢 et 🔵)")
 ```
 <details>
 <summary>Dérouler pour révéler les instructions</summary>
@@ -190,7 +205,7 @@ La requête que nous proposons d'utiliser est à structurer à partir des élém
 
 - Pour la clause `SELECT`, la liste des colonnes à utiliser est pré-formattée dans l'objet `liste_colonnes_sql`
 - Pour la clause `FROM`, l'instruction `read_parquet` peut être utilisée avec l'URL stocké dans `url_data`
-- Pour la clause WHERE, vous pouvez utiliser la syntaxe suivante pour normaliser les code-barres des deux côtés en retirant les 
+- Pour la clause `WHERE`, vous pouvez utiliser la syntaxe suivante pour normaliser les code-barres des deux côtés en retirant les 
 0 initiaux: `CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)`
 
 ```{=html}
@@ -210,7 +225,7 @@ La requête que nous proposons d'utiliser est à structurer à partir des élém
 #| output: asis
 #| eval: true
 from utils_notebook import create_box_level
-create_box_level(color = "grey", title = "Lire les données avec `DuckDB` (🔴 et ⚫)")
+create_box_level(color = "grey", title = "Lire les données avec <code>DuckDB</code> (🔴 et ⚫)")
 ```
 <details>
 <summary>Dérouler pour révéler les instructions</summary>
@@ -226,7 +241,7 @@ Aide pour la voie 🔴
 Il faut normaliser les code-barres des deux côtés avant d'essayer
 de comparer. Cela se fait de la manière suivante: `CAST(ltrim({ean}) AS STRING)`
 A vous de mettre en oeuvre cela pour faire de la comparaison entre notre EAN et la
-variable `code` 
+variable `code`.
 
 
 
@@ -238,6 +253,23 @@ variable `code`
 <!----- end 🔴 et ⚫ ----->
 :::
 
+Voici la solution:
+
+```{python}
+# Solution pour voie 🟡
+def get_product_ean(con, ean, url_data, liste_colonnes_sql):
+    openfood_produit = con.sql(
+            f"SELECT {liste_colonnes_sql} FROM read_parquet('{url_data}') WHERE CAST(ltrim(code, '0') AS STRING) = CAST(ltrim({ean}) AS STRING)"
+        ).df()
+    return openfood_produit
+```
+
+On va néanmoins intégrer ceci dans un _pipeline_ plus général:
+
+1. On cherche le produit à partir du code barre
+2. Si les infos sont manquantes, on récupère les produits dont le nom ressemble par distance de Jaro-Winkler. 
+
+Voici la fonction qui permet d'implémenter la deuxième partie:
 
 ```{python}
 # Solution pour voie 🟡
@@ -247,7 +279,7 @@ import pandas as pd
 from utils.pipeline import clean_note
 
 def fuzzy_matching_product(openfood_produit, product_name, con, url_data, liste_colonnes_sql, indices_synthetiques):
-    out_textual = con.sql(f"SELECT {liste_colonnes_sql} from read_parquet('{url_data}') WHERE jaro_winkler_similarity('{product_name}',product_name) > 0.8 AND \"energy-kcal_100g\" IS NOT NULL")
+    out_textual = con.sql(f"SELECT {liste_colonnes_sql} from read_parquet('{url_data}') WHERE jaro_winkler_similarity('{product_name}',product_name) > 0.9 AND \"energy-kcal_100g\" IS NOT NULL")
     out_textual = out_textual.df()
 
     out_textual_imputed = pd.concat(
@@ -261,13 +293,7 @@ def fuzzy_matching_product(openfood_produit, product_name, con, url_data, liste_
     return out_textual_imputed
 ```
 
-
-```{python}
-from utils.download_pb import import_coicop_labels
-coicop = import_coicop_labels(
-    "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls"
-)
-```
+Voici finalement le pipeline mis en oeuvre: 
 
 ```{python}
 # Solution pour voie 🟡
