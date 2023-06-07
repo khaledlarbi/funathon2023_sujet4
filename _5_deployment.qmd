@@ -168,3 +168,10 @@ Afin de déployer l'application, suivre les instructions suivantes :
 :::
 
 Votre application est maintenant déployée, vous pouvez partager cette URL avec n'importe quel utilisateur dans le monde !
+
+## Bonus: le parcours 🟣
+
+Un dernier _challenge_ pour les amateurs de sensations fortes : créer la même application sur un site _web_ statique grâce au _web assembly_ (par exemple grâce à `Observable` et `Quarto`) !
+
+Pour avoir un site web statique, l'identification du code-barre devra être faite en dehors de l'application, par exemple par le moyen d'une API
+

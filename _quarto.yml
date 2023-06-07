@@ -6,6 +6,5 @@ project:
 format:
     html:
         toc: true
-        toc-location: left
 
 output: true
