@@ -3,4 +3,5 @@
 Un sujet pour découvrir comment développer et mettre en production une application interactive avec `Python`
 
 
-[![Watch the video](https://raw.githubusercontent.com/InseeFrLab/funathon2023_sujet4/main/img/demo_yuka.png)](https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/video_out.webm)
+
+[video_out.webm](https://github.com/InseeFrLab/funathon2023_sujet4/assets/33896139/942681a7-be90-4247-b71e-7c603ad82713)

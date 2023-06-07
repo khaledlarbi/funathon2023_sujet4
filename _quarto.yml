@@ -1,7 +1,7 @@
 project:
   title: "funathon-streamlit"
   render:
-    - "draft.qmd"
+    - "index.qmd"
 
 format:
     html:
