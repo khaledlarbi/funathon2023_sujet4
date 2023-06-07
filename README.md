@@ -1,15 +1,6 @@
-# funathon2023_sujet4
+# Mon Yuka 🥕 avec Python 🐍
 
-Produire une application qui scanne le code barre d'un produit et donne sa composition nutritionnelle
+Un sujet pour découvrir comment développer et mettre en production une application interactive avec `Python`
 
 
-# ROADMAP
-
-1. Créer le lecteur de code barre (DONE)
-2. Récupérer openfood (DONE)
-3. Indexer dans elastic ou recherche textuelle EAN (DONE avec duckdb)
-4. Predicat
-5. Retourner composition nutritionnelle (DONE)
-6. App streamlit local
-7. App streamlit deployée
-8. Eventuellement : comparer aux produits même catégorie
+[![Watch the video](https://raw.githubusercontent.com/InseeFrLab/funathon2023_sujet4/main/img/demo_yuka.png)](https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/video_out.webm)
