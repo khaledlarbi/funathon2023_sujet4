@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: inseefrlab/funathon2023_sujet4:latest
+          image: inseefrlab/funathon2023_sujet4:v1.0.0
           imagePullPolicy: Always
           resources:
             limits:
