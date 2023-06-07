@@ -1,4 +1,6 @@
 import streamlit as st
+from streamlit_javascript import st_javascript
+
 import cv2
 import pandas as pd
 import duckdb
@@ -48,27 +50,45 @@ def local_css(file_name):
 
 local_css("style.css")
 
+width = st_javascript(
+    "window.innerWidth"
+)
 
-with st.sidebar:
+if width > 500:
+    with st.sidebar:
+        input_method = st.radio(
+                "Méthode d'upload de la photo",
+                ('Photo enregistrée', 'Capture de la webcam'))
+        if input_method == 'Photo enregistrée':
+            input_url = st.file_uploader("Uploaded une photo:", accept_multiple_files=False)
+        else:
+            picture = st.camera_input("Take a picture")
+            input_url = picture
+        
+        if input_url is not None:
+            img = visualise_barcode(input_url)
+            cv2.imwrite('barcode_opencv.jpg', img)
+            st.image('barcode_opencv.jpg')
+        
+        options = st.multiselect(
+                'Quelles statistiques afficher ?',
+                ["nutriscore_grade", "nova_group", "ecoscore_grade"],
+                ["nutriscore_grade", "nova_group", "ecoscore_grade"],
+                format_func=label_grade_formatter)
+else:
     input_method = st.radio(
-            "What\'s your favorite movie genre",
-            ('Photo enregistrée', 'Capture de la webcam'))
+                    "What\'s your favorite movie genre",
+                    ('Photo enregistrée', 'Capture de la webcam'))
     if input_method == 'Photo enregistrée':
         input_url = st.file_uploader("Uploaded une photo:", accept_multiple_files=False)
     else:
         picture = st.camera_input("Take a picture")
         input_url = picture
-    
-    if input_url is not None:
-        img = visualise_barcode(input_url)
-        cv2.imwrite('barcode_opencv.jpg', img)
-        st.image('barcode_opencv.jpg')
-    
     options = st.multiselect(
-            'Quelles statistiques afficher ?',
-            ["nutriscore_grade", "nova_group", "ecoscore_grade"],
-            ["nutriscore_grade", "nova_group", "ecoscore_grade"],
-            format_func=label_grade_formatter)
+                    'Quelles statistiques afficher ?',
+                    ["nutriscore_grade", "nova_group", "ecoscore_grade"],
+                    ["nutriscore_grade", "nova_group", "ecoscore_grade"],
+                    format_func=label_grade_formatter)
 
 st.write(
     '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">',
