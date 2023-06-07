@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: funathon2023_sujet4
+  name: funathon2023-sujet4
 spec:
   project: default
   source:
