@@ -6,5 +6,6 @@ project:
 format:
     ipynb:
         output: true
+    html: default
 
 output: true
