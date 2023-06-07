@@ -4,10 +4,6 @@ eval: false
 execute:
   cache: true
   keep-ipynb: true
-format:
-  html:
-    code-fold: true
-    code-summary: "Dérouler la solution 🟡"
 ---
 
 
@@ -19,8 +15,7 @@ organisé en 2023 par l'Insee et le Ministère de l'Agriculture sur le thème _"
 Les autres sujets sont disponibles
 sur le [`Github InseeFrLab`](https://github.com/InseeFrLab/funathon2023). 
 
-
-## Objectif et approche pédagogique
+# Objectif et approche pédagogique
 
 L'objectif de ce projet est d'apprendre à utiliser `Python` pour créer des 
 applications réactives avec `Streamlit` mais aussi de se familiariser à
@@ -51,7 +46,9 @@ Il est donc tout à fait possible de passer, selon les parties, d'une voie 🟢 
 
 Il est même tout à fait possible de sauter une étape et reprendre à partir de la suivante grâce aux _checkpoints_ proposés. 
 
-Les consignes sont encapsulées dans des boites dédiées, afin d'être séparées des explications générales. Par exemple, la boite verte prendra l'aspect suivant:
+Les consignes sont encapsulées dans des boites dédiées, afin d'être séparées des explications générales. 
+
+Par exemple, la boite verte prendra l'aspect suivant:
 
 ::: {.cell .markdown}
 <!----- boite 🟢 ----->
@@ -117,7 +114,7 @@ print("toto")
 ```
 
 
-### Etapes du projet
+## Etapes du projet
 
 Le projet est séquencé de la manière suivante: 
 
@@ -137,7 +134,7 @@ La première étape (1️⃣ _Récupération et nettoyage de la base `OpenFoodFa
 et utiliser directement les morceaux de code mis à disposition. 
 
 
-### Remarque
+## Remarques
 
 Cette page peut être consultée par différents canaux:
 
@@ -148,7 +145,7 @@ jaune et ne voulez pas voir la solution sans le vouloir ;
 - Sur un notebook `Jupyter`, les solutions de la voie 🟡 sont affichées par défaut.
 Elles peuvent être cachées en faisant `View` > `Collapse All Code`
 
-### Sources et packages utilisés
+## Sources et packages utilisés
 
 Notre source de référence sera [`OpenFoodFacts`](https://fr.openfoodfacts.org/), une 
 base contributive sur les produits alimentaires. 

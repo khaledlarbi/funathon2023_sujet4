@@ -1,4 +1,4 @@
-# 2️⃣ Faire des statistiques agrégées par catégories
+# 2️⃣ Faire des statistiques agrégées par catégories
 
 Cette partie permet de calculer en amont de l'application des
 statistiques descriptives qui pourront être utilisées

@@ -6,5 +6,8 @@ project:
 format:
     html:
         toc: true
+        code-fold: true
+        code-summary: "Dérouler la solution 🟡"
+        code-tools: true
 
 output: true

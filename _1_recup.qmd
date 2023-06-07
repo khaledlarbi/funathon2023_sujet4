@@ -1,4 +1,4 @@
-# 1️⃣ Récupération des données `OpenFoodFacts`
+# 1️⃣ Récupération des données `OpenFoodFacts`
 
 ## 1.1. Préliminaire (🟡,🟢,🔵,🔴,⚫)
 
