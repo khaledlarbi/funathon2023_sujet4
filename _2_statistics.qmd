@@ -416,7 +416,7 @@ Celui-ci comporte quatre variables: `coicop`, `note`, `value` et `variable`.
 ```{python}
 #| echo: false
 #| output: asis
-#| eval: false
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🔴", title = "Distribution des notes par catégorie de produit (🔴)")
 ```
@@ -584,6 +584,7 @@ distribution avec, en rouge, celle de notre produit (`valeur_produit`)
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🔵", title = "Modèle de figure pour les notes (🔵)")
 ```
@@ -631,6 +632,7 @@ sont les variables précédemment crées.
 ```{python}
 #| echo: false
 #| output: asis
+#| eval: true
 from utils_notebook import create_box_level
 create_box_level(color = "🟢", title = "Modèle de figure pour les notes (🟢)")
 ```

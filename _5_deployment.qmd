@@ -1,6 +1,6 @@
-# 4. Déploiement de l'application interactive
+# 5️⃣ Déploiement de l'application interactive
 
-## 4.1. Préliminaires (🔵,🔴,⚫)
+## 5.1. Préliminaires (🔵,🔴,⚫)
 
 L'application construite dans la partie précédente reste pour le moment à un niveau local: elle n'est accessible que via l'utilisateur qui l'a déployée et ce sur la machine où elle a été déployée. L'objectif de cette dernière partie est de **déployer** l'application, c'est à dire de la rendre accessible en continu à n'importe quel utilisateur. Pour cela, on va devoir s'intéresser à la technologie des **conteneurs**, qui est à la base des infrastructures de production modernes.
 
@@ -16,7 +16,7 @@ La technologie standard pour assurer la **portabilité** d'un projet, c'est à d
 
 L'enjeu de cette partie est donc de dévoiler pas à pas la boîte noire afin de comprendre dans quel environnement on se trouve, et comment celui-ci va nous permettre de déployer notre application.
 
-## Conteneurisation de l'application (🔵,🔴,⚫)
+## 5.2. Conteneurisation de l'application (🔵,🔴,⚫)
 
 ::: {.cell .markdown}
 <!----- boite 🔵 ----->
@@ -63,6 +63,7 @@ create_box_level(color = "grey", title = "Créer le `Dockerfile` de l'applicatio
 Une image `Docker` est construite à partir d'un fichier spécifique généralement placé à la racine du projet, le `Dockerfile`. Sans regarder le `Dockerfile` existant dans le projet, et en vous inspirant de la [documentation Streamlit](https://docs.streamlit.io/knowledge-base/tutorials/deploy/docker#create-a-dockerfile) (en Anglais), essayez de construire le `Dockerfile` pertinent pour l'application, puis comparez votre solution à l'existant.
 
 Quelques consignes supplémentaires :
+
 - on utilisera comme image de base `inseefrlab/onyxia-jupyter-python:py3.10.9`
 - on se mettra en utilisateur *root* via l'[instruction USER](https://docs.docker.com/engine/reference/builder/#user)
 - on aura besoin d'installer les librairies système suivantes via `apt-get` : `ffmpeg, libsm6, libxext6, libzbar0`
@@ -122,7 +123,7 @@ Les étapes à suivre sont les suivantes :
 
 
 
-## Déploiement sur le `SSP Cloud`
+## 5.3. Déploiement sur le `SSP Cloud`
 
 Maintenant que l'image de notre application est disponible sur le `DockerHub`, elle peut à présent être récupérée (*pull*) et déployée sur n'importe quel environnement. Dans notre cas, on va la déployer sur un cluster `Kubernetes`, l'infrastructure sous-jacente du `SSP Cloud`. Le fonctionnement de `Kubernetes` est assez technique, mais l'on pourra s'abstraire de certaines parties selon le niveau de difficulté choisi.
 

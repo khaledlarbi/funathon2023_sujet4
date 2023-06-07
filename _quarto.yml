@@ -4,6 +4,8 @@ project:
     - "draft.qmd"
 
 format:
-    html: default
+    html:
+        toc: true
+        toc-location: left
 
 output: true
