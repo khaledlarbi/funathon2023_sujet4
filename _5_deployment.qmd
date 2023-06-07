@@ -4,12 +4,17 @@
 
 L'application construite dans la partie précédente reste pour le moment à un niveau local: elle n'est accessible que via l'utilisateur qui l'a déployée et ce sur la machine où elle a été déployée. L'objectif de cette dernière partie est de **déployer** l'application, c'est à dire de la rendre accessible en continu à n'importe quel utilisateur. Pour cela, on va devoir s'intéresser à la technologie des **conteneurs**, qui est à la base des infrastructures de production modernes.
 
-Le fait de lancer ce notebook via un simple [lien de lancement](LIEN A METTRE) nous a permis de commencer à travailler directement, sans trop nous soucier de l'environnement de développement dans lequel on se trouvait. Mais dès lors que l'on souhaite passer de son environnement de développement à un environnement de production, il est nécessaire de se poser un ensemble de questions pour s'assurer que le projet fonctionne ailleurs que sur sa machine personnelle :
+Le fait de lancer ce notebook via un simple [lien de lancement](LIEN A METTRE) nous a permis de commencer à travailler directement, sans trop nous soucier de l'environnement de développement dans lequel on se trouvait.
+
+Mais dès lors que l'on souhaite passer de son environnement de développement à un environnement de production, il est nécessaire de se poser un ensemble de questions pour s'assurer que le projet fonctionne ailleurs que sur sa machine personnelle :
+
 - quelle est la version de `Python` à installer pour que le projet fonctionne ?
 - quels sont les packages `Python` utilisés par le projet et quelles sont leurs versions ?
 - quelles sont les éventuelles librairies systèmes, i.e. dépendantes du système d'exploitation installé, nécessaires pour que les packages `Python` s'installent correctement ?
 
-La technologie standard pour assurer la **portabilité** d'un projet, c'est à dire de fonctionner sur différents environnements informatiques, est celle des **conteneurs**. Schématiquement, il s'agit de boîtes virtuelles qui contiennent l'ensemble de l’environnement (librairies systèmes, interpréteur `Python`, code applicatif, configuration...) permettant de faire tourner l’application, tout en restant légères et donc faciles à redistribuer. En fait, chaque service lancé sur le `SSP Cloud` est un conteneur, et ce notebook tourne donc lui-même... dans un conteneur ! L'enjeu de cette partie est donc de dévoiler pas à pas la boîte noire afin de comprendre dans quel environnement on se trouve, et comment celui-ci va nous permettre de déployer notre application.
+La technologie standard pour assurer la **portabilité** d'un projet, c'est à dire de fonctionner sur différents environnements informatiques, est celle des **conteneurs**. Schématiquement, il s'agit de boîtes virtuelles qui contiennent l'ensemble de l’environnement (librairies systèmes, interpréteur `Python`, code applicatif, configuration...) permettant de faire tourner l’application, tout en restant légères et donc faciles à redistribuer. En fait, chaque service lancé sur le `SSP Cloud` est un conteneur, et ce notebook tourne donc lui-même... dans un conteneur !
+
+L'enjeu de cette partie est donc de dévoiler pas à pas la boîte noire afin de comprendre dans quel environnement on se trouve, et comment celui-ci va nous permettre de déployer notre application.
 
 ## Conteneurisation de l'application (🔵,🔴,⚫)
 
@@ -28,7 +33,9 @@ create_box_level(color = "🔵", title = "Comprendre la création de l'image `Do
 <summary>Dérouler pour révéler les instructions</summary>
 ```
 
-Le projet contient à la racine un fichier `Dockerfile`. Il s'agit de la "recette" de construction de l'image `Docker` de l'application, i.e. qui spécifie l'environnement nécessaire à son bon fonctionnement. En vous inspirant de la [documentation Streamlit](https://docs.streamlit.io/knowledge-base/tutorials/deploy/docker#create-a-dockerfile) (en Anglais) ou bien de cette [page de cours](https://ensae-reproductibilite.github.io/website/chapters/portability.html#dockerfile), essayez de comprendre pas à pas les étapes de construction de l'image `Docker` de l'application.
+Le projet contient à la racine un fichier `Dockerfile`. Il s'agit de la "recette" de construction de l'image `Docker` de l'application, i.e. qui spécifie l'environnement nécessaire à son bon fonctionnement.
+
+En vous inspirant de la [documentation Streamlit](https://docs.streamlit.io/knowledge-base/tutorials/deploy/docker#create-a-dockerfile) (en Anglais) ou bien de cette [page de cours](https://ensae-reproductibilite.github.io/website/chapters/portability.html#dockerfile), essayez de comprendre pas à pas les étapes de construction de l'image `Docker` de l'application.
 
 ```{=html}
 </details>
@@ -53,7 +60,9 @@ create_box_level(color = "grey", title = "Créer le `Dockerfile` de l'applicatio
 <summary>Dérouler pour révéler les instructions</summary>
 ```
 
-Une image `Docker` est construite à partir d'un fichier spécifique généralement placé à la racine du projet, le `Dockerfile`. Sans regarder le `Dockerfile` existant dans le projet, et en vous inspirant de la [documentation Streamlit](https://docs.streamlit.io/knowledge-base/tutorials/deploy/docker#create-a-dockerfile) (en Anglais) essayez de construire le `Dockerfile` pertinent pour l'application, puis comparez votre solution à l'existant. Quelques consignes supplémentaires :
+Une image `Docker` est construite à partir d'un fichier spécifique généralement placé à la racine du projet, le `Dockerfile`. Sans regarder le `Dockerfile` existant dans le projet, et en vous inspirant de la [documentation Streamlit](https://docs.streamlit.io/knowledge-base/tutorials/deploy/docker#create-a-dockerfile) (en Anglais), essayez de construire le `Dockerfile` pertinent pour l'application, puis comparez votre solution à l'existant.
+
+Quelques consignes supplémentaires :
 - on utilisera comme image de base `inseefrlab/onyxia-jupyter-python:py3.10.9`
 - on se mettra en utilisateur *root* via l'[instruction USER](https://docs.docker.com/engine/reference/builder/#user)
 - on aura besoin d'installer les librairies système suivantes via `apt-get` : `ffmpeg, libsm6, libxext6, libzbar0`
@@ -84,9 +93,14 @@ create_box_level(color = "⚫", title = "Construire l'image `Docker` de l'applic
 <summary>Dérouler pour révéler les instructions</summary>
 ```
 
-Une fois le `Dockerfile` construit (du moins sa première version), on va l'utiliser pour construire une image `Docker` (la "boîte" virtuelle) et mettre celle-ci sur un registre (répertoire d'images) afin que celle-ci puisse être réutilisée dans un autre environnement que celui où on l'a développée. On pourrait faire cela "à la main" en ligne de commandes (cf. [documentation Docker](https://docs.docker.com/get-started/02_our_app/)), mais on va plutôt automatiser le processus en passant par un *pipeline* (série d'étapes) d'intégration continue. Ainsi, à chaque mise à jour du code source de l'application (nouvelles fonctionnalités, correction de bugs, etc.), notre image sera automatiquement mise à jour.
+Une fois le `Dockerfile` construit (du moins sa première version), on va l'utiliser pour construire une image `Docker` (la "boîte" virtuelle) et mettre celle-ci sur un registre (répertoire d'images) afin que celle-ci puisse être réutilisée dans un autre environnement que celui où on l'a développée.
+
+On pourrait faire cela "à la main" en ligne de commandes (cf. [documentation Docker](https://docs.docker.com/get-started/02_our_app/)), mais on va plutôt automatiser le processus en passant par un *pipeline* (série d'étapes) d'intégration continue.
+
+Ainsi, à chaque mise à jour du code source de l'application (nouvelles fonctionnalités, correction de bugs, etc.), notre image sera automatiquement mise à jour.
 
 Les étapes à suivre sont les suivantes :
+
 - si nécessaire, créer un compte personnel sur [GitHub](https://github.com) et sur le [DockerHub](https://hub.docker.com/) (registre d'images open-source)
 - bien s'assurer que le `Dockerfile` obtenu à l'étape précédente est identique à celui existant dans le projet
 - [forker](https://docs.github.com/fr/get-started/quickstart/fork-a-repo) le [dépôt du projet](https://github.com/InseeFrLab/funathon2023_sujet4) afin de l'avoir dans votre espace personnel sur `GitHub`
@@ -131,6 +145,7 @@ create_box_level(color = "grey", title = "Déploiement de l'application à parti
 En amont de ce projet, nous avons construit une image `Docker` fonctionnelle de l'application, disponible sur le `DockerHub` dans l'espace [inseefrlab](https://hub.docker.com/repository/docker/inseefrlab/funathon2023_sujet4). Nous avons également créés dans le répertoire `deployment/` à la racine du projet les trois fichiers standards nécessaires au déploiement d'une application sur `Kubernetes`. 
 
 Afin de déployer l'application, suivre les instructions suivantes :
+
 - inspecter les fichiers `deployment.yml`, `service.yml` et `ingress.yml` et repérer les éléments suivants :
     - où est spécifiée l'image que l'on va déployer. Pour la difficulté ⚫: remplacer l'image actuelle par celle que vous avez construite et envoyée sur le `DockerHub` dans la partie précédente
     - où sont spécifiées les ressources computationnelles que l'on va allouer à l'application

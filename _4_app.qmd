@@ -1,4 +1,4 @@
-# 4. Construire une application interactive
+# 4️⃣ Construire une application interactive
 
 Cette partie vise à assembler les briques précédentes afin de les rendre facilement accessibles à un utilisateur final.
 Pour cela, nous allons construire une application interactive à l'aide du framework `Streamlit` en `Python`.
@@ -12,16 +12,410 @@ Voici une petite vidéo de démonstration de l'application:
 from IPython.display import HTML
 HTML("""
     <video width="520" height="240" alt="test" controls>
-        <source src="video_out.webm" type="video/mp4">
+        <source src="https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/video_out.webm" type="video/mp4">
     </video>
 """)
 ```
 
-## Créer l'application
+Selon le parcours suivi, la construction de cette application sera plus ou moins guidée. 
 
-## Lancer l'application
+## 4.1. Lancer l'application pour la tester (🟡,🟢,🔵,🔴,⚫)
+
+Il est rare d'avoir une application fonctionnelle du premier coup, cela peut demander
+beaucoup d'essai-erreur pour parvenir à ses fins. Il est donc utile de régulièrement
+lancer l'application pour la tester. Cela se fait en lançant un serveur local,
+c'est-à-dire en créant une tâche qui fonctionne en arrière-plan et qui va créer une 
+interaction entre un navigateur et du code `Python`. 
+
+Pour lancer ce serveur web local plusieurs méthodes sont possibles sur le `SSP Cloud`,
+en partant du principe que votre application est stockée dans un fichier `app.py`
+
+- Pour les personnes familières de la ligne de commande, vous pouvez 
+en lancer une (en cliquant sur `+` dans le menu à gauche de `Jupyter` 
+et exécuter, dans le bon dossier de travail, `streamlit run app.py --server.port 5000 --server.address 0.0.0.0` 
+- Pour les personnes désirant lancer la commande depuis `Jupyter`,
+il suffit d'exécuter la cellule suivante:
 
 ```{python}
 #| eval: false
 !streamlit run app.py --server.port 5000 --server.address 0.0.0.0
 ```
+
+Remarque: si vous n'êtes pas sur le `SSP Cloud`, vous pouvez retirer
+l'option `--server.address 0.0.0.0`. 
+
+Il reste à accéder au navigateur sur lequel l'application a été déployée. 
+Sur un poste local, vous ouvririez l'URL `localhost:5000` sur votre navigateur. 
+Pour accéder à votre application depuis le SSP Cloud, il va falloir y accéder
+différemment. 
+
+1. Il convient d'ouvrir un nouvel onglet sur votre navigateur web pour retourner sur
+votre espace SSPCloud: [datalab.sspcloud.fr/my-services](https://datalab.sspcloud.fr/my-services).
+Si vous êtes sur une autre page, vous pouvez cliquer à gauche sur `My Services`.
+2. Ensuite, il faut cliquer sur le bouton `README` pour accéder à des informations sur le 
+service `Jupyter` ouvert. 
+
+![](img/demo_readme_sspcloud.png)
+
+Il faut ensuite cliquer sur le lien ci-dessous:
+
+![](img/demo_readme_sspcloud2.png)
+
+Cela va ouvrir un nouvel onglet sur votre navigateur où, cette fois, vous aurez l'application.
+Chaque action que vous effectuerez sur celle-ci déclenchera une opération dans la  
+ligne de commande que vous avez lancée. 
+
+Pour le parcours 🟡, la voie s'arrête à ce niveau. Vous pouvez néanmoins basculer du côté de la
+voie 🟢 pour apprendre de manière guidée à créer votre application `Streamlit`.
+
+Pour les parcours 🟢,🔵,🔴 et ⚫, vous allez pouvoir créer vous-même l'application, de manière 
+plus ou moins guidée. 
+
+
+## 4.2. Créer l'application dans un serveur temporaire  (🟢,🔵,🔴,⚫)
+
+Voici la gradation des niveaux pour créer l'application:
+
+- 🟢: Lire et comprendre le contenu du fichier `app.py` qui génère l'application
+- 🔵: Après avoir supprimé le fichier d'exemple `app.py`,
+mettre en oeuvre l'application avec des consignes guidées
+- 🔴: Après avoir supprimé le fichier d'exemple `app.py`, mettre en oeuvre l'application
+à partir d'un cachier des charges détaillé
+- ⚫: Après avoir supprimé le fichier d'exemple `app.py`, mettre en oeuvre l'application
+uniquement à partir de l'exemple sur [myyuka.lab.sspcloud.fr/](https://myyuka.lab.sspcloud.fr/)
+et de la vidéo précédemment présentée. Idéalement, faire en sorte que le contenu du site soit
+_responsive_ c'est-à-dire qu'il soit bien adapté à la taille de l'écran. 
+
+::: {.cell .markdown}
+<!----- boite ⚫ ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+#| eval: true
+from utils_notebook import create_box_level
+create_box_level(color = "grey", title = "Créer l'application (⚫)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Bon courage, force et honneur, tout ça tout ça...
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end ⚫ ----->
+:::
+
+
+::: {.cell .markdown}
+<!----- boite 🔴 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+#| eval: true
+from utils_notebook import create_box_level
+create_box_level(color = "grey", title = "Créer l'application (🔴)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Pour commencer, voici l'ensemble de l'environnement, que nous vous proposons de prendre
+comme donné:
+
+```python
+    import streamlit as st
+    from streamlit_javascript import st_javascript
+    
+    import cv2
+    import pandas as pd
+    import duckdb
+    
+    from utils.detect_barcode import extract_ean, visualise_barcode
+    from utils.pipeline import find_product_openfood
+    from utils.construct_figures import plot_product_info
+    from utils.utils_app import local_css, label_grade_formatter
+    from utils.download_pb import import_coicop_labels
+    
+    # Une personnalisation sympa pour l'onglet
+    st.set_page_config(page_title="PYuka", page_icon="🍎")
+    
+    
+    # --------------------
+    # METADATA
+    indices_synthetiques = [
+        "nutriscore_grade", "ecoscore_grade", "nova_group"
+    ]
+    principales_infos = [
+        'product_name', 'code', 'preprocessed_labels', 'coicop', \
+        'url', 'image_url'
+    ]
+    liste_colonnes = principales_infos + indices_synthetiques
+    liste_colonnes_sql = [f"\"{s}\"" for s in liste_colonnes]
+    liste_colonnes_sql = ', '.join(liste_colonnes_sql)
+    
+    con = duckdb.connect(database=':memory:')
+    con.execute("""
+        INSTALL httpfs;
+        LOAD httpfs;
+        SET s3_endpoint='minio.lab.sspcloud.fr'
+    """)
+    
+    # LOAD DATASET
+    url_data = "https://projet-funathon.minio.lab.sspcloud.fr/2023/sujet4/diffusion/openfood.parquet"
+    stats_notes = pd.read_parquet("https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/stats_notes_pandas.parquet")
+    coicop = import_coicop_labels(
+        "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls"
+    )
+    
+    # --------------------
+    
+    
+    st.title('Mon Yuka 🥕 avec Python 🐍')
+    
+    # Feuille de style & taille de l'écran pour adapter l'interface
+    local_css("style.css")
+    width = st_javascript(
+        "window.innerWidth"
+    )
+```
+
+1. Si l'écran a une taille suffisante (on propose comme taille discriminante 500px),la partie gauche de l'écran est consacrée aux _inputs_ (sinon c'est en haut de la page) :
+    + Un bouton permet à l'utilisateur de choisir sa méthode d'_upload_ de photo: soit un _file uploader_, soit une capture à partir de la caméra
+    + Si l'écran a une taille suffisante, afficher l'image reconnue
+    + Créer une liste modifiable de statistiques à afficher à partir d'un sélecteur adapté.
+Pour formatter les champs à afficher, vous pouvez utiliser la fonction `label_grade_formatter`
+qui va, par exemple, transformer `nutriscore_grade` en `Nutriscore`
+2. Créer le corps principal de l'application avec les instructions suivantes:
+    + Créer une fonction enrobant `find_product_openfood` pour récupérer la donnée adaptée à partir d'un EAN. Nommé le `DataFrame` obtenu `subset`
+    + Utiliser  `extract_ean` pour décoder l'image. Stocker l'objet en sortie d'`OpenCV` sous le nom `decoded_objects`
+    + A partir de l'objet `subset`: créer un texte qui renvoie vers l'URL du produit sur `OpenFoodFacts`, afficher l'image du produit, afficher le `DataFrame` dans l'interface de notre application
+    + Utiliser notre fonction de production de graphique pour afficher des statistiques descriptives à partir de notre choix d'options. 
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔴 ----->
+:::
+
+
+::: {.cell .markdown}
+<!----- boite 🔵 ----->
+
+```{=html}
+```{python}
+#| echo: false
+#| output: asis
+#| eval: true
+from utils_notebook import create_box_level
+create_box_level(color = "grey", title = "Créer l'application (🔵)")
+```
+<details>
+<summary>Dérouler pour révéler les instructions</summary>
+```
+
+Pour commencer, voici l'ensemble de l'environnement, que nous vous proposons de prendre
+comme donné:
+
+```python
+    import streamlit as st
+    from streamlit_javascript import st_javascript
+    
+    import cv2
+    import pandas as pd
+    import duckdb
+    
+    from utils.detect_barcode import extract_ean, visualise_barcode
+    from utils.pipeline import find_product_openfood
+    from utils.construct_figures import plot_product_info
+    from utils.utils_app import local_css, label_grade_formatter
+    from utils.download_pb import import_coicop_labels
+    
+    # Une personnalisation sympa pour l'onglet
+    st.set_page_config(page_title="PYuka", page_icon="🍎")
+    
+    
+    # --------------------
+    # METADATA
+    indices_synthetiques = [
+        "nutriscore_grade", "ecoscore_grade", "nova_group"
+    ]
+    principales_infos = [
+        'product_name', 'code', 'preprocessed_labels', 'coicop', \
+        'url', 'image_url'
+    ]
+    liste_colonnes = principales_infos + indices_synthetiques
+    liste_colonnes_sql = [f"\"{s}\"" for s in liste_colonnes]
+    liste_colonnes_sql = ', '.join(liste_colonnes_sql)
+    
+    con = duckdb.connect(database=':memory:')
+    con.execute("""
+        INSTALL httpfs;
+        LOAD httpfs;
+        SET s3_endpoint='minio.lab.sspcloud.fr'
+    """)
+    
+    # LOAD DATASET
+    url_data = "https://projet-funathon.minio.lab.sspcloud.fr/2023/sujet4/diffusion/openfood.parquet"
+    stats_notes = pd.read_parquet("https://minio.lab.sspcloud.fr/projet-funathon/2023/sujet4/diffusion/stats_notes_pandas.parquet")
+    coicop = import_coicop_labels(
+        "https://www.insee.fr/fr/statistiques/fichier/2402696/coicop2016_liste_n5.xls"
+    )
+    
+    # --------------------
+    
+    
+    st.title('Mon Yuka 🥕 avec Python 🐍')
+    
+    # Feuille de style & taille de l'écran pour adapter l'interface
+    local_css("style.css")
+    width = st_javascript(
+        "window.innerWidth"
+    )
+```
+
+<br>
+Nous proposons ensuite de construire ce fichier par étape
+
+Etape 1: Construire la partie _inputs_ en suivant le modèle
+à trou suivant:
+
+```python
+    if width > 500:
+        # pour les grands écrans on met une partie à gauche
+        # qui centralise plusieurs type d'input
+        with st.sidebar:
+            # 1. choix de la méthode d'upload
+            if input_method == 'Photo enregistrée':
+                # 2. file uploader
+            else:
+                # 3. camera uploader
+            
+            if input_url is not None:
+                # visualise l'image s'il y a un input
+                img = visualise_barcode(input_url)
+                cv2.imwrite('barcode_opencv.jpg', img)
+                # 4. afficher l'image
+    
+            # 5. choix des statistiques à afficher
+    else:
+        # pour les petits écrans (type smartphone)
+        # le file uploader est au début
+        # 1. choix de la méthode d'upload
+        if input_method == 'Photo enregistrée':
+            # 2. file uploader
+        else:
+            # 3. camera uploader
+            picture = st.camera_input("Take a picture")
+            input_url = picture
+            # 5. choix des statistiques à afficher
+```
+
+<br>
+
+Celui-ci est à remplir de la manière suivante:
+
+1. Créer un bouton qui permet à l'utilisateur de choisir
+sa méthode d'_upload_ de photo. Celui-ci est à enregistrer
+sous le nom `input_method`
+2. Proposer un _file uploader_ dont la valeur peut être utilisée
+sous le nom `input_url`
+3. Proposer un outil de capture de caméra dont la valeur peut être utilisée
+sous le nom `input_url`
+4. Si l'écran a une taille suffisante (on propose comme taille discriminante 500px),
+afficher l'image stockée dans le fichier temporaire `barcode_opencv.jpg`
+5. Créer une liste modifiable de statistiques à afficher à partir d'un sélecteur adapté.
+Pour formatter les champs à afficher, vous pouvez utiliser la fonction `label_grade_formatter`
+qui va, par exemple, transformer `nutriscore_grade` en `Nutriscore`
+
+Etape 2: Construire la partie s'adaptant à ces _inputs_ avec le modèle suivant
+à trou suivant:
+
+```python
+    # ----------------------------------------------------------
+    # PARTIE 2: EXPLOITATION DES INPUTS DANS NOTRE APP
+    
+    
+    # CHARGEMENT DE LA LIGNE DANS OPENFOODFACTS
+    @st.cache_data
+    def load_data(ean):
+        # 1. Créer le DataFrame avec la fonction `find_product_openfood` 
+        # openfood_data = 
+        return openfood_data
+    
+    if input_url is None:
+        # Showcase product
+        st.write('Produit exemple: Coca-Cola')
+        subset = load_data("5000112602791")
+        decoded_objects = extract_ean(subset["image_url"].iloc[0])
+    else:
+        # 2. utiliser `extract_ean` pour décoder l'image
+        # decoded_objects
+        
+    try:
+        # 3. Récupérer l'EAN
+        ean = decoded_objects[0].data.decode("utf-8")
+        st.markdown(f'🎉 __EAN détecté__: <span style="color:Red">{ean}</span>', unsafe_allow_html=True)
+        subset = load_data(ean)
+        # 3. Mettre un lien avec l'URL du produit sur openfoodfacts
+        # 4. Afficher l'image du produit
+        # 5. Afficher le DataFrame
+        # put some statistics
+        t = f"<div>Statistiques parmi les <span class='highlight blue'>{subset['category'].iloc[0]}<span class='bold'>COICOP</span>"                
+        st.markdown(t, unsafe_allow_html=True)
+        # 6. Afficher les figures plotly
+    except:
+        # we don't manage to get EAN
+        st.write('🚨 Problème de lecture de la photo, essayez de mieux cibler le code-barre')
+        st.image("https://i.kym-cdn.com/entries/icons/original/000/025/458/grandma.jpg")
+```
+
+Voici des indications pour compléter ces trous:
+
+1. Créer une fonction enrobant `find_product_openfood` pour récupérer la donnée adaptée à partir d'un EAN
+2. Utiliser  `extract_ean` pour décoder l'image. Stocker l'objet en sortie d'`OpenCV` sous le nom `decoded_objects`
+3. A partir de l'objet `subset`, créer un texte qui renvoie vers l'URL du produit sur `OpenFoodFacts`
+4. Afficher l'image du produit, l'URL étant la variable adéquate de `subset`
+5. Afficher le `DataFrame` dans l'interface de notre application
+6. Utiliser notre fonction de production de graphique pour afficher des statistiques descriptives à partir de notre
+choix d'options. 
+
+```{=html}
+</details>
+</div>
+```
+
+<!----- end 🔵 ----->
+:::
+
+Voici une proposition d'application, afin de reproduire en local le contenu de [myyuka.lab.sspcloud.fr/](https://myyuka.lab.sspcloud.fr/)
+
+
+```{python}
+#| echo: true
+#| eval: true
+# Solution pour la voie 🟢
+with open('app.py', 'r') as file:
+    app_content = file.read()
+
+print(
+    app_content
+)
+```
+
+## 4.3. En marche vers la mise en production (🟢,🔵,🔴,⚫)
+
+Pour le parcours 🟢, la voie s'arrête à ce niveau. Vous pouvez néanmoins basculer du côté de la
+voie 🔵 pour apprendre de manière guidée à mettre en production votre travail en
+déployant automatiquement une application. 
+
+Pour les parcours 🔵,🔴 et ⚫, vous allez pouvoir déployer vous-même l'application, de manière 
+plus ou moins guidée. 
