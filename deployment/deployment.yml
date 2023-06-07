@@ -15,7 +15,6 @@ spec:
       containers:
         - name: app
           image: inseefrlab/funathon2023_sujet4:v1.0.1
-          imagePullPolicy: Always
           resources:
             limits:
               memory: "2Gi"
