@@ -9,4 +9,5 @@ PyYAML
 pyzbar
 scikit-image
 streamlit
+streamlit-javascript
 xlrd
