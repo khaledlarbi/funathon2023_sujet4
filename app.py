@@ -88,7 +88,7 @@ else:
     # pour les petits écrans (type smartphone)
     # le file uploader est au début
     input_method = st.radio(
-                    "What\'s your favorite movie genre",
+                    "Méthode d'upload de la photo",
                     ('Photo enregistrée', 'Capture de la webcam'))
     if input_method == 'Photo enregistrée':
         # file uploader
