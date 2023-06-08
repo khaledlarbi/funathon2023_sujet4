@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: inseefrlab/funathon2023_sujet4:v1.0.2
+          image: inseefrlab/funathon2023_sujet4:v1.0.3
           resources:
             limits:
               memory: "2Gi"
