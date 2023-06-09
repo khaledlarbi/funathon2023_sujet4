@@ -18,7 +18,6 @@ cp "${CLONE_DIR}/argo.yaml" "${WORK_DIR}/argo.yaml"
 cp "${CLONE_DIR}/Dockerfile" "${WORK_DIR}/Dockerfile"
 cp -R "${CLONE_DIR}/utils" "${WORK_DIR}/utils"
 cp -R "${CLONE_DIR}/deployment" "${WORK_DIR}/deployment"
-+
 
 # Open the relevant notebook when starting Jupyter Lab
 jupyter server --generate-config
