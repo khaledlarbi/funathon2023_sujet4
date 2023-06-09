@@ -869,14 +869,18 @@ que cette commande fonctionne__.
 Enfin, pour rendre ce fichier accessible à votre future application, 
 il est nécessaire d'éditer la cellule ci-dessous pour remplacer
 `<USERNAME_SSPCLOUD>` par votre nom d'utilisateur sur le `SSPCloud` puis 
-d'exécuter la cellule suivante: 
+d'exécuter la cellule suivante qui va permettre de rendre ce fichier public. : 
 
 ```{python}
 #| eval: false
+# ⚠️ modifier ci-dessous pour remplacer USERNAME_SSPCLOUD par votre nom d'utilisateur sur le SSPCloud
 !mc anonymous set download s3/<USERNAME_SSPCLOUD>/2023/sujet4/diffusion
 ```
 
-qui rend ce fichier public. 
+⚠️ **Il faut avoir modifié la valeur de `USERNAME_SSPCLOUD` dans la commande pour que cela fonctionne**.
+
+
+
 
 Le fichier sera ainsi disponible en téléchargement directement depuis un URL de la forme: 
 

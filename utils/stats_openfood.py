@@ -35,7 +35,9 @@ def quantile_one_variable_sql(con, variable="energy-kcal_100g", path_within_s3 =
 
 
 def count_one_variable_sql(con, variable, path_within_s3 = "temp.parquet"):
-    query = f"SELECT category, {variable} AS note, COUNT({variable}) AS value FROM read_parquet('s3://{path_within_s3}') GROUP BY category, {variable}"
+    query = f"SELECT coicop, {variable} AS note, COUNT({variable}) AS value FROM read_parquet('s3://{path_within_s3}') GROUP BY coicop, {variable}"
     stats_one_variable = con.sql(query).df().dropna()
     stats_one_variable['variable'] = variable
+    stats_one_variable = stats_one_variable.replace('', 'NONE')
+
     return stats_one_variable
