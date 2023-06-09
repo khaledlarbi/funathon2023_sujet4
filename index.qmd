@@ -172,10 +172,10 @@ officiel de l'Insee.
 
 
 
-{{< include _1_recup.qmd >}}
-{{< include _2_statistics.qmd >}}
-{{< include _3_match_barcode.qmd >}}
-{{< include _4_app.qmd >}}
-{{< include _5_deployment.qmd >}}
+{{< include content/_1_recup.qmd >}}
+{{< include content/_2_statistics.qmd >}}
+{{< include content/_3_match_barcode.qmd >}}
+{{< include content/_4_app.qmd >}}
+{{< include content/_5_deployment.qmd >}}
 
 
