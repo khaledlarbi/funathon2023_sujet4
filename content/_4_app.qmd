@@ -396,7 +396,9 @@ choix d'options.
 <!----- end 🔵 ----->
 :::
 
-Voici une proposition d'application, afin de reproduire en local le contenu de [myyuka.lab.sspcloud.fr/](https://myyuka.lab.sspcloud.fr/)
+Voici une proposition d'application,
+afin de reproduire en local le contenu de [myyuka.lab.sspcloud.fr/](https://myyuka.lab.sspcloud.fr/).
+
 
 
 ```{python}
