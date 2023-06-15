@@ -19,8 +19,6 @@ cp "${CLONE_DIR}/Dockerfile" "${WORK_DIR}/Dockerfile"
 cp -R "${CLONE_DIR}/utils" "${WORK_DIR}/utils"
 cp -R "${CLONE_DIR}/deployment" "${WORK_DIR}/deployment"
 
-rm -rf ${CLONE_DIR}
-
 # Open the relevant notebook when starting Jupyter Lab
 jupyter server --generate-config
 echo "c.LabApp.default_url = '/lab/tree/index.ipynb'" >> /home/onyxia/.jupyter/jupyter_server_config.py
