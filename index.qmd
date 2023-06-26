@@ -20,7 +20,10 @@ sur le [`Github InseeFrLab`](https://github.com/InseeFrLab/funathon2023).
 Pour les personnes bénéficiant d'un compte sur
 l'infrastructure [`SSP Cloud`](https://www.onyxia.sh/)
 vous pouvez cliquer sur le lien ci-dessous pour lancer un 
-environnement `Jupyter` prêt-à-l'emploi [![Onyxia](https://img.shields.io/badge/SSPcloud-Tester%20via%20SSP--cloud-informational&color=yellow?logo=Python)](https://datalab.sspcloud.fr/launcher/ide/jupyter-python?autoLaunch=true&kubernetes.role=%C2%ABadmin%C2%BB&networking.user.enabled=true&git.cache=%C2%AB36000%C2%BB&init.personalInit=%C2%ABhttps%3A%2F%2Fraw.githubusercontent.com%2FInseeFrLab%2Ffunathon2023_sujet4%2Fmain%2Finit.sh%C2%BB)
+environnement `Jupyter` prêt-à-l'emploi
+[![Onyxia](https://img.shields.io/badge/SSPcloud-Tester%20via%20SSP--cloud-informational&color=yellow?logo=Python)](https://datalab.sspcloud.fr/launcher/ide/jupyter-python?autoLaunch=false&kubernetes.role=%C2%ABadmin%C2%BB&networking.user.enabled=true&git.cache=%C2%AB36000%C2%BB&init.personalInit=%C2%ABhttps%3A%2F%2Fraw.githubusercontent.com%2FInseeFrLab%2Ffunathon2023_sujet4%2Fmain%2Finit.sh%C2%BB&git.token=%C2%AB%C2%BB&git.repository=%C2%ABhttps%3A%2F%2Fgithub.com%2FInseeFrLab%2Ffunathon2023_sujet4.git%C2%BB)
+Il s'agit de l'approche recommandée si vous avez un compte sur cette plateforme de l'Etat.
+
 
 Si vous ne disposez pas d'un tel environnement, il est possible de consulter
 cette page à travers un _notebook_
